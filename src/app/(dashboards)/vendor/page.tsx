@@ -1,15 +1,10 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+"use client";
 
-const sidebarItems = [
-  { name: "Kontrak Legal", href: "/vendor/kontrak", icon: "📄" },
-  { name: "Eksekusi Proyek", href: "/vendor/eksekusi", icon: "🔨" },
-  { name: "Pengajuan Payment", href: "/vendor/payment", icon: "💳" },
-  { name: "Validasi RAB", href: "/vendor/rab", icon: "✅" },
-];
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
 export default function VendorDashboard() {
   return (
-    <DashboardLayout roleName="Mitra Vendor" sidebarItems={sidebarItems}>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Vendor & Kontraktor</h1>
@@ -41,7 +36,7 @@ export default function VendorDashboard() {
                 <h4 className="font-bold text-gray-900">Pembangunan Masjid Jami' An-Nur</h4>
                 <p className="text-sm text-gray-500 mt-1">Target Milestone Saat Ini: 80%</p>
               </div>
-              <button className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+              <button onClick={() => alert("Form pelaporan progres terbuka...")} className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
                 Laporkan Progres 80%
               </button>
             </div>
@@ -51,13 +46,13 @@ export default function VendorDashboard() {
                 <h4 className="font-bold text-gray-900">Pesantren Tahfidz Al-Ikhlas</h4>
                 <p className="text-sm text-gray-500 mt-1">Target Milestone Saat Ini: 40%</p>
               </div>
-              <button className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+              <button onClick={() => alert("Form pelaporan progres terbuka...")} className="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
                 Laporkan Progres 40%
               </button>
             </div>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

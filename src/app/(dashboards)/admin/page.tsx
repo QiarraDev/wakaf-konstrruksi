@@ -1,15 +1,10 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
-const sidebarItems = [
-  { name: "Kurasi Proyek", href: "/admin/kurasi", icon: "📋" },
-  { name: "Validasi Vendor", href: "/admin/vendor", icon: "✅" },
-  { name: "Distribusi Area", href: "/admin/distribusi", icon: "🗺️" },
-  { name: "Edukasi LMS", href: "/admin/lms", icon: "📚" },
-];
+
+
 
 export default function AdminDashboard() {
   return (
-    <DashboardLayout roleName="Admin" sidebarItems={sidebarItems}>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Selamat datang, Admin!</h1>
@@ -40,6 +35,6 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

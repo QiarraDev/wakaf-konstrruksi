@@ -1,15 +1,12 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
-const sidebarItems = [
-  { name: "Proposal Baru", href: "/pengelola/proposal", icon: "📝" },
-  { name: "Penyusunan RAB", href: "/pengelola/rab", icon: "💰" },
-  { name: "Arsitek & Desain", href: "/pengelola/desain", icon: "📐" },
-  { name: "Brief Assessment", href: "/pengelola/assessment", icon: "🔍" },
-];
+
+
+
+import Link from "next/link";
 
 export default function PengelolaDashboard() {
   return (
-    <DashboardLayout roleName="Pengelola Aset" sidebarItems={sidebarItems}>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard Pengelola Aset</h1>
@@ -40,12 +37,12 @@ export default function PengelolaDashboard() {
           <div>
             <h3 className="font-bold text-emerald-800">Langkah Pertama</h3>
             <p className="text-emerald-700 mt-1">Mulai ajukan pembangunan dengan membuat <b>Proposal Baru</b>. Tim arsitek dan konsultan kami siap membantu penyusunan RAB dan Desain.</p>
-            <button className="mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+            <Link href="/pengelola/proposal" className="inline-block mt-4 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
               Buat Proposal
-            </button>
+            </Link>
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }

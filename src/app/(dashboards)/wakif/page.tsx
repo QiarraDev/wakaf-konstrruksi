@@ -1,14 +1,10 @@
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
 
-const sidebarItems = [
-  { name: "Cari Proyek", href: "/wakif/cari", icon: "🔍" },
-  { name: "Portofolio Wakaf", href: "/wakif/portofolio", icon: "📁" },
-  { name: "Laporan Real-time", href: "/wakif/laporan", icon: "📊" },
-];
+
+
 
 export default function WakifDashboard() {
   return (
-    <DashboardLayout roleName="Wakif (Donatur)" sidebarItems={sidebarItems}>
+    <>
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard Wakif</h1>
@@ -59,6 +55,6 @@ export default function WakifDashboard() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
+    </>
   );
 }
