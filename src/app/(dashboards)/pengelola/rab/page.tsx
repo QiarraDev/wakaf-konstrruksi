@@ -1,4 +1,7 @@
+"use client";
+import { useRouter } from "next/navigation";
 export default function RabPage() {
+  const router = useRouter();
   return (
     <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mt-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">

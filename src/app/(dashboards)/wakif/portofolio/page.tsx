@@ -1,3 +1,4 @@
+"use client";
 export default function PortofolioPage() {
   return (
     <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mt-6">

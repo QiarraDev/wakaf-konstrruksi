@@ -1,4 +1,7 @@
+"use client";
+import { useRouter } from "next/navigation";
 export default function KontrakPage() {
+  const router = useRouter();
   return (
     <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mt-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Kontrak Legal Proyek</h1>

@@ -1,4 +1,7 @@
+"use client";
+import { useRouter } from "next/navigation";
 export default function CariPage() {
+  const router = useRouter();
   return (
     <div className="bg-transparent mt-6">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Cari Peluang Wakaf Jariyah</h1>

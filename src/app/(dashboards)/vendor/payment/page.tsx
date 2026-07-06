@@ -1,4 +1,7 @@
+"use client";
+import { useRouter } from "next/navigation";
 export default function PaymentPage() {
+  const router = useRouter();
   return (
     <div className="bg-white p-8 rounded-2xl border border-gray-200 shadow-sm mt-6 max-w-3xl">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Pengajuan Pencairan Dana (Termin)</h1>

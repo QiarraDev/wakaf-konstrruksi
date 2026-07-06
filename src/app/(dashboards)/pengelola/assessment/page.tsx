@@ -1,4 +1,7 @@
+"use client";
+import { useRouter } from "next/navigation";
 export default function AssessmentPage() {
+  const router = useRouter();
   const checklists = [
     { title: "Status Lahan / Tanah", desc: "Sertifikat Hak Milik atau Akta Ikrar Wakaf tersedia dan tidak dalam sengketa.", checked: true },
     { title: "Kesesuaian Tata Ruang", desc: "Lokasi pembangunan sesuai dengan peruntukan Rencana Tata Ruang Wilayah (RTRW).", checked: true },
