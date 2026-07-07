@@ -1,76 +1,143 @@
-import Image from "next/image";
+"use client";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+  };
+
   return (
-    <main className="min-h-screen flex flex-col">
+    <main className="min-h-screen flex flex-col relative overflow-hidden bg-background">
+      {/* Premium Background Elements */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute -top-[20%] -right-[10%] w-[70vw] h-[70vw] rounded-full bg-emerald-500/10 blur-[120px]" />
+        <div className="absolute top-[40%] -left-[10%] w-[50vw] h-[50vw] rounded-full bg-teal-500/10 blur-[120px]" />
+        
+        {/* Subtle grid pattern */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')] opacity-[0.03]" />
+      </div>
+
       {/* Navbar */}
-      <nav className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold">
-            W
+      <motion.nav 
+        className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4 lg:px-12 mx-4 mt-4 rounded-2xl"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-700 flex items-center justify-center text-white font-bold shadow-lg shadow-primary/30">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
           </div>
           <span className="font-bold text-xl tracking-tight text-foreground">
             Wakaf Konstruksi
           </span>
         </div>
-        <Link href="/auth" className="hidden md:flex items-center gap-6 text-sm font-medium">
-          <span className="hover:text-primary transition-colors">Beranda</span>
-          <span className="hover:text-primary transition-colors">Daftar Proyek</span>
-          <span className="hover:text-primary transition-colors">Transparansi</span>
-        </Link>
-        <Link href="/auth" className="bg-primary hover:bg-primary-dark text-white px-5 py-2 rounded-full font-medium transition-colors">
+        <div className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-600 dark:text-gray-300">
+          <Link href="#" className="hover:text-primary dark:hover:text-primary-light transition-colors">Beranda</Link>
+          <Link href="#" className="hover:text-primary dark:hover:text-primary-light transition-colors">Proyek Aktif</Link>
+          <Link href="#" className="hover:text-primary dark:hover:text-primary-light transition-colors">Transparansi</Link>
+          <Link href="#" className="hover:text-primary dark:hover:text-primary-light transition-colors">Cara Kerja</Link>
+          <ThemeToggle />
+        </div>
+        <Link href="/auth" className="btn-primary flex items-center gap-2">
           Masuk Portal
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
         </Link>
-      </nav>
+      </motion.nav>
 
       {/* Hero Section */}
-      <section className="relative flex-1 flex items-center justify-center py-20 px-6 overflow-hidden">
-        {/* Background elements */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent -z-10" />
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl -z-10 -translate-x-1/3 translate-y-1/3" />
-
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary-dark font-medium text-sm">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Platform Wakaf Konstruksi Terpercaya
-          </div>
+      <section className="relative flex-1 flex items-center justify-center py-20 px-6 lg:px-12 z-10">
+        <div className="max-w-5xl mx-auto text-center">
           
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground">
+          <motion.div 
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-primary-dark dark:text-emerald-400 font-bold text-xs uppercase tracking-widest mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            Platform Manajemen Konstruksi Terpercaya
+          </motion.div>
+          
+          <motion.h1 
+            className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight text-gray-900 dark:text-white leading-[1.1] mb-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
             Bangun Kebaikan <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative inline-block">
               Beramal Jariyah
+              <motion.div 
+                className="absolute -bottom-2 left-0 right-0 h-2 bg-emerald-500/20 rounded-full blur-sm"
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ delay: 1, duration: 0.8 }}
+              />
             </span>
-          </h1>
+          </motion.h1>
           
-          <p className="text-lg md:text-xl text-foreground/70 max-w-2xl mx-auto leading-relaxed">
-            Platform digital transparan untuk mendukung pembangunan Masjid, Pesantren, Madrasah, dan fasilitas sosial Islam lainnya di seluruh Indonesia.
-          </p>
+          <motion.p 
+            className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-10 font-medium"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.6 }}
+          >
+            Sistem manajemen terintegrasi untuk pengelolaan, pengawasan, dan transparansi pembangunan fasilitas ibadah dan pendidikan Islam di seluruh Indonesia.
+          </motion.p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <button className="w-full sm:w-auto px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-full font-bold text-lg shadow-lg shadow-primary/30 transition-all hover:-translate-y-1">
-              Lihat Proyek Aktif
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            <Link href="/auth" className="w-full sm:w-auto px-8 py-4 bg-gray-900 dark:bg-emerald-600 hover:bg-black dark:hover:bg-emerald-500 text-white rounded-xl font-bold text-lg shadow-xl shadow-gray-900/20 dark:shadow-emerald-600/20 transition-all hover:-translate-y-1 flex items-center justify-center gap-2">
+              Jelajahi Ekosistem
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 16 4-4-4-4"/><path d="M8 12h8"/></svg>
+            </Link>
+            <button className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-xl font-bold text-lg shadow-sm transition-all flex items-center justify-center gap-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Tonton Demo
             </button>
-            <button className="w-full sm:w-auto px-8 py-4 bg-white text-foreground border border-gray-200 hover:border-primary hover:text-primary rounded-full font-bold text-lg shadow-sm transition-all">
-              Pelajari Lebih Lanjut
-            </button>
-          </div>
+          </motion.div>
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 pt-16 border-t border-gray-100">
+          {/* Staggered Stats */}
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 pt-20 mt-12 border-t border-gray-200/60 dark:border-gray-800/60"
+            variants={containerVariants}
+            initial="hidden"
+            animate="show"
+          >
             {[
-              { label: "Proyek Selesai", value: "120+" },
-              { label: "Donatur Aktif", value: "15.000+" },
-              { label: "Total Wakaf", value: "Rp 12 M" },
-              { label: "Vendor Terverifikasi", value: "45" },
+              { label: "Proyek Terkelola", value: "120+", icon: "🏗️" },
+              { label: "Total Anggaran", value: "Rp 12M", icon: "💰" },
+              { label: "Vendor Tervalidasi", value: "45", icon: "✅" },
+              { label: "Skor Transparansi", value: "98%", icon: "📊" },
             ].map((stat, i) => (
-              <div key={i} className="space-y-2">
-                <div className="text-3xl font-black text-foreground">{stat.value}</div>
-                <div className="text-sm font-medium text-foreground/60">{stat.label}</div>
-              </div>
+              <motion.div key={i} variants={itemVariants} className="flex flex-col items-center justify-center space-y-3 p-4 rounded-2xl hover:bg-white dark:hover:bg-gray-900 hover:shadow-xl hover:shadow-gray-200/50 dark:hover:shadow-black/50 transition-all cursor-default">
+                <div className="w-12 h-12 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center text-2xl border border-gray-100 dark:border-gray-700">{stat.icon}</div>
+                <div className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white tracking-tight">{stat.value}</div>
+                <div className="text-xs md:text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{stat.label}</div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
     </main>

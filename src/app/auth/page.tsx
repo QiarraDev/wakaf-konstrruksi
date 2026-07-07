@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function AuthPage() {
   const roles = [
@@ -57,8 +58,7 @@ export default function AuthPage() {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden"
-      style={{ background: 'linear-gradient(135deg, #0b1f18 0%, #0d2a20 40%, #071510 100%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-background transition-colors duration-300">
 
       {/* Background decorations */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -66,6 +66,11 @@ export default function AuthPage() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-teal-400/5 rounded-full blur-3xl"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] border border-emerald-500/5 rounded-full"></div>
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] border border-emerald-500/3 rounded-full"></div>
+      </div>
+
+      {/* Theme Toggle fixed top right */}
+      <div className="absolute top-6 right-6 z-50 bg-white/50 dark:bg-black/20 rounded-xl backdrop-blur-md border border-gray-200 dark:border-white/10 shadow-sm">
+        <ThemeToggle />
       </div>
 
       <div className="w-full max-w-5xl relative z-10">
@@ -92,7 +97,7 @@ export default function AuthPage() {
           </motion.div>
 
           <motion.h1
-            className="text-4xl sm:text-5xl font-black text-white tracking-tight"
+            className="text-4xl sm:text-5xl font-black text-gray-900 dark:text-white tracking-tight"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
@@ -100,7 +105,7 @@ export default function AuthPage() {
             Wakaf Konstruksi
           </motion.h1>
           <motion.p
-            className="text-emerald-400/70 text-lg mt-3 font-medium"
+            className="text-emerald-600 dark:text-emerald-400/70 text-lg mt-3 font-medium"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.35, duration: 0.5 }}
@@ -121,15 +126,15 @@ export default function AuthPage() {
             >
               <Link
                 href={role.path}
-                className={`group flex flex-col p-6 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm hover:bg-white/10 transition-all duration-300 ${role.border} hover:shadow-xl ${role.glow}`}
+                className={`group flex flex-col p-6 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 backdrop-blur-sm hover:bg-gray-50 dark:hover:bg-white/10 transition-all duration-300 ${role.border} hover:shadow-xl ${role.glow} shadow-sm dark:shadow-none`}
               >
                 {/* Icon gradient bubble */}
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${role.gradient} flex items-center justify-center text-2xl mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
                   {role.icon}
                 </div>
-                <h3 className="text-lg font-bold text-white">{role.name}</h3>
-                <p className="text-sm text-white/50 mt-1.5 leading-relaxed">{role.description}</p>
-                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{role.name}</h3>
+                <p className="text-sm text-gray-500 dark:text-white/50 mt-1.5 leading-relaxed">{role.description}</p>
+                <div className="mt-4 flex items-center gap-1 text-xs font-bold text-primary dark:text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   Masuk <span className="ml-1">→</span>
                 </div>
               </Link>
@@ -139,7 +144,7 @@ export default function AuthPage() {
 
         {/* Footer */}
         <motion.p
-          className="text-center text-white/30 text-sm mt-10"
+          className="text-center text-gray-400 dark:text-white/30 text-sm mt-10"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
