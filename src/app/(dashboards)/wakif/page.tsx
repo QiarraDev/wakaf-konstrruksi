@@ -2,20 +2,15 @@
 
 import { useState } from "react";
 
+type ModalDetails = {
+  timeline: { step: string; status: string; budget?: string; date?: string }[];
+};
+
 export default function WakifDashboard() {
-  const [modalContent, setModalContent] = useState<{title: string, msg: string} | null>(null);
+  const [modalContent, setModalContent] = useState<{title: string, msg: string, details?: ModalDetails} | null>(null);
 
   return (
     <>
-      {modalContent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setModalContent(null)}>
-          <div className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl" onClick={e => e.stopPropagation()}>
-            <h3 className="text-xl font-bold mb-2">{modalContent.title}</h3>
-            <p className="text-gray-600 mb-6">{modalContent.msg}</p>
-            <button onClick={() => setModalContent(null)} className="w-full bg-primary text-white py-2 rounded-lg font-medium">Tutup</button>
-          </div>
-        </div>
-      )}
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Dashboard Wakif</h1>
@@ -33,6 +28,93 @@ export default function WakifDashboard() {
           </div>
         </div>
 
+        {/* 1. Berita Terkini dipindah ke atas */}
+        <div className="mt-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Berita Terkini &amp; Laporan Proyek</h2>
+            <span className="text-sm text-primary font-medium cursor-pointer hover:underline" onClick={() => setModalContent({title: "Arsip Laporan Lengkap", msg: "Membuka repositori dokumen laporan proyek sebelumnya untuk diunduh."})}>Arsip Laporan</span>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* News Card 1 */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+              <div className="relative h-48 w-full overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/news/news_masjid_1783408714337.png" 
+                  alt="Progress Masjid" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary">
+                  Update Pembangunan
+                </div>
+              </div>
+              <div className="p-5">
+                <div className="text-xs text-gray-500 mb-2">2 Hari yang lalu &bull; Pembangunan Masjid Jami' An-Nur</div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight">Pemasangan Atap Kubah Utama Telah Selesai</h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  Alhamdulillah, berkat dukungan para wakif, proses pemasangan kerangka kubah utama telah berjalan lancar sesuai jadwal. Saat ini tim sedang mempersiapkan pelapisan penutup atap.
+                </p>
+                <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                  <button className="text-primary font-semibold text-sm hover:underline" onClick={() => setModalContent({
+                    title: "Pemasangan Atap Kubah Utama Telah Selesai", 
+                    msg: "Alhamdulillah, proses pemasangan kerangka kubah utama Masjid Jami' An-Nur telah selesai. Saat ini tim fokus pada pelapisan material.",
+                    details: {
+                      timeline: [
+                        { step: "Peletakan Pondasi", status: "Selesai", budget: "Rp 120.000.000", date: "12 Mei 2026" },
+                        { step: "Struktur Dinding", status: "Selesai", budget: "Rp 350.000.000", date: "28 Juni 2026" },
+                        { step: "Pemasangan Kubah", status: "Selesai (Baru saja)", budget: "Rp 215.000.000", date: "Hari ini" }
+                      ]
+                    }
+                  })}>Baca Selengkapnya</button>
+                  <button className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg border border-gray-200 transition-colors" onClick={() => setModalContent({title: "Mengunduh PDF", msg: "Mempersiapkan dokumen Laporan_Masjid_AnNur_Minggu3.pdf untuk diunduh..."})}>
+                    <span>📄</span> Laporan PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* News Card 2 */}
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+              <div className="relative h-48 w-full overflow-hidden">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img 
+                  src="/news/news_pesantren_1783408727331.png" 
+                  alt="Progress Pesantren" 
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-secondary">
+                  Laporan Kuartal
+                </div>
+              </div>
+              <div className="p-5">
+                <div className="text-xs text-gray-500 mb-2">1 Minggu yang lalu &bull; Pesantren Tahfidz Al-Ikhlas</div>
+                <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight">Peletakan Batu Pertama dan Pengecoran Pondasi</h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  Pembangunan tahap pertama asrama santri resmi dimulai. Proses pengecoran pondasi cakar ayam berjalan dengan lancar didukung cuaca yang cerah.
+                </p>
+                <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                  <button className="text-primary font-semibold text-sm hover:underline" onClick={() => setModalContent({
+                    title: "Peletakan Batu Pertama Pesantren Tahfidz", 
+                    msg: "Pembangunan tahap pertama asrama santri resmi dimulai dengan acara peletakan batu pertama bersama tokoh masyarakat.",
+                    details: {
+                      timeline: [
+                        { step: "Pembebasan Lahan", status: "Selesai", budget: "Rp 500.000.000", date: "April 2026" },
+                        { step: "Pondasi Tapak", status: "Selesai (Baru saja)", budget: "Rp 85.000.000", date: "1 Minggu lalu" },
+                        { step: "Struktur Bawah", status: "Berjalan", budget: "Rp 240.000.000 (Est)", date: "Saat ini" }
+                      ]
+                    }
+                  })}>Baca Selengkapnya</button>
+                  <button className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg border border-gray-200 transition-colors" onClick={() => setModalContent({title: "Mengunduh PDF", msg: "Mempersiapkan dokumen Laporan_Pesantren_Kuartal1.pdf untuk diunduh..."})}>
+                    <span>📄</span> Laporan PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Proyek Sedang Berjalan */}
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-bold">Proyek Sedang Berjalan</h2>
@@ -210,82 +292,50 @@ export default function WakifDashboard() {
             </div>
           </div>
         </div>
-        <div className="mt-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Berita Terkini &amp; Laporan Proyek</h2>
-            <span className="text-sm text-primary font-medium cursor-pointer hover:underline" onClick={() => setModalContent({title: "Arsip Laporan Lengkap", msg: "Membuka repositori dokumen laporan proyek sebelumnya untuk diunduh."})}>Arsip Laporan</span>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* News Card 1 */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
-              <div className="relative h-48 w-full overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src="/news/news_masjid_1783408714337.png" 
-                  alt="Progress Masjid" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-primary">
-                  Update Pembangunan
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="text-xs text-gray-500 mb-2">2 Hari yang lalu &bull; Pembangunan Masjid Jami' An-Nur</div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight">Pemasangan Atap Kubah Utama Telah Selesai</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  Alhamdulillah, berkat dukungan para wakif, proses pemasangan kerangka kubah utama telah berjalan lancar sesuai jadwal. Saat ini tim sedang mempersiapkan pelapisan penutup atap.
-                </p>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                  <button className="text-primary font-semibold text-sm hover:underline" onClick={() => setModalContent({title: "Detail Berita", msg: "Membuka artikel lengkap tentang Pemasangan Atap Kubah Utama Masjid Jami' An-Nur beserta galeri foto..."})}>Baca Selengkapnya</button>
-                  <button className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg border border-gray-200 transition-colors" onClick={() => setModalContent({title: "Mengunduh PDF", msg: "Mempersiapkan dokumen Laporan_Masjid_AnNur_Minggu3.pdf untuk diunduh..."})}>
-                    <span>📄</span> Laporan PDF
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* News Card 2 */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
-              <div className="relative h-48 w-full overflow-hidden">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src="/news/news_pesantren_1783408727331.png" 
-                  alt="Progress Pesantren" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-secondary">
-                  Laporan Kuartal
-                </div>
-              </div>
-              <div className="p-5">
-                <div className="text-xs text-gray-500 mb-2">1 Minggu yang lalu &bull; Pesantren Tahfidz Al-Ikhlas</div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight">Peletakan Batu Pertama dan Pengecoran Pondasi</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                  Pembangunan tahap pertama asrama santri resmi dimulai. Proses pengecoran pondasi cakar ayam berjalan dengan lancar didukung cuaca yang cerah.
-                </p>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4">
-                  <button className="text-primary font-semibold text-sm hover:underline" onClick={() => setModalContent({title: "Detail Berita", msg: "Membuka liputan lengkap acara Peletakan Batu Pertama Pesantren Tahfidz Al-Ikhlas..."})}>Baca Selengkapnya</button>
-                  <button className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs px-3 py-1.5 rounded-lg border border-gray-200 transition-colors" onClick={() => setModalContent({title: "Mengunduh PDF", msg: "Mempersiapkan dokumen Laporan_Pesantren_Kuartal1.pdf untuk diunduh..."})}>
-                    <span>📄</span> Laporan PDF
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
-      {/* Global Interactive Modal */}
+      {/* Global Interactive Modal with Timeline Details */}
       {modalContent && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 transform transition-all shadow-primary/10 border border-gray-100">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 transform transition-all shadow-primary/10 border border-gray-100 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-start mb-4">
-              <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-xl">ℹ️</div>
+              <div className="w-10 h-10 bg-emerald-50 rounded-full flex items-center justify-center text-xl">
+                {modalContent.details ? '📰' : 'ℹ️'}
+              </div>
               <button onClick={() => setModalContent(null)} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
             </div>
+            
             <h2 className="text-xl font-bold text-gray-900 mb-2">{modalContent.title}</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed text-sm">{modalContent.msg}</p>
+            <p className="text-gray-600 mb-6 leading-relaxed text-sm">{modalContent.msg}</p>
+            
+            {/* Extended Details Section */}
+            {modalContent.details && (
+              <div className="mb-8 border border-gray-100 rounded-xl bg-gray-50 p-4">
+                <h4 className="font-bold text-gray-900 text-sm mb-4 uppercase tracking-wider">Histori Anggaran &amp; Timeline</h4>
+                <div className="space-y-4">
+                  {modalContent.details.timeline.map((item, i) => (
+                    <div key={i} className="flex gap-4 items-start">
+                      <div className="flex-shrink-0 mt-1">
+                        <div className={`w-3 h-3 rounded-full ${item.status.includes('Selesai') ? 'bg-primary' : 'bg-secondary animate-pulse'}`}></div>
+                      </div>
+                      <div className="flex-grow pb-4 border-b border-gray-200 last:border-0 last:pb-0">
+                        <div className="flex justify-between items-start">
+                          <h5 className="font-bold text-sm text-gray-900">{item.step}</h5>
+                          <span className="text-xs text-gray-500">{item.date}</span>
+                        </div>
+                        <p className="text-xs text-emerald-600 font-medium mt-0.5">{item.status}</p>
+                        {item.budget && (
+                          <div className="mt-1.5 inline-flex bg-white px-2 py-1 rounded text-xs font-bold text-gray-700 border border-gray-200">
+                            💰 {item.budget}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="flex justify-end">
               <button 
                 onClick={() => setModalContent(null)}
