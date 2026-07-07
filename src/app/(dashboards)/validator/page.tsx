@@ -25,8 +25,8 @@ export default function ValidatorDashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Validator Lapangan</h1>
-          <p className="text-gray-500 mt-1">Pantau dan laporkan kondisi pembangunan secara real-time dari lokasi.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Validator Lapangan</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Pantau dan laporkan kondisi pembangunan secara real-time dari lokasi.</p>
         </div>
         <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-4 py-2 rounded-xl">
           <div className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse"></div>
@@ -37,12 +37,12 @@ export default function ValidatorDashboard() {
       {/* Stat Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {stats.map((s, i) => (
-          <div key={i} className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col gap-2">
+          <div key={i} className="stat-card flex flex-col gap-2">
             <div className="flex justify-between items-center">
               <span className="text-2xl">{s.icon}</span>
               <span className={`text-2xl font-black ${s.color}`}>{s.value}</span>
             </div>
-            <p className="text-sm text-gray-500 font-medium leading-tight">{s.label}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium leading-tight">{s.label}</p>
           </div>
         ))}
       </div>
@@ -62,13 +62,13 @@ export default function ValidatorDashboard() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Project Selector & Status */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="font-bold text-gray-900">Status Proyek Aktif</h2>
+        <div className="card overflow-hidden">
+          <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+            <h2 className="font-bold text-gray-900 dark:text-white">Status Proyek Aktif</h2>
             <select 
               value={selectedProject} 
               onChange={(e) => setSelectedProject(e.target.value)}
-              className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 outline-none focus:border-primary"
+              className="border border-gray-200 dark:border-gray-700 bg-transparent rounded-lg px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 outline-none focus:border-primary"
             >
               {projects.map(p => <option key={p}>{p}</option>)}
             </select>
@@ -76,10 +76,10 @@ export default function ValidatorDashboard() {
           <div className="p-5 space-y-4">
             <div>
               <div className="flex justify-between text-sm mb-2 font-medium">
-                <span className="text-gray-600">Progres Keseluruhan</span>
+                <span className="text-gray-600 dark:text-gray-400">Progres Keseluruhan</span>
                 <span className="text-primary font-bold">{selectedProject.includes('Masjid') ? '60%' : '20%'}</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
+              <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-3">
                 <div className="bg-primary h-3 rounded-full transition-all duration-700" style={{width: selectedProject.includes('Masjid') ? '60%' : '20%'}}></div>
               </div>
             </div>
@@ -89,9 +89,9 @@ export default function ValidatorDashboard() {
                 { label: "Estimasi Selesai", value: selectedProject.includes('Masjid') ? "Oktober 2026" : "Januari 2027" },
                 { label: "Laporan Terakhir", value: "Hari ini, 09:15 WIB" },
               ].map((item, i) => (
-                <div key={i} className="flex justify-between text-sm border-b border-gray-50 pb-2 last:border-0">
-                  <span className="text-gray-500">{item.label}</span>
-                  <span className="font-semibold text-gray-900">{item.value}</span>
+                <div key={i} className="flex justify-between text-sm border-b border-gray-50 dark:border-gray-800/50 pb-2 last:border-0">
+                  <span className="text-gray-500 dark:text-gray-400">{item.label}</span>
+                  <span className="font-semibold text-gray-900 dark:text-white">{item.value}</span>
                 </div>
               ))}
             </div>
@@ -99,9 +99,9 @@ export default function ValidatorDashboard() {
         </div>
 
         {/* Recent Activity Log */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
-            <h2 className="font-bold text-gray-900">Log Aktivitas Terkini</h2>
+        <div className="card overflow-hidden">
+          <div className="p-5 border-b border-gray-100 dark:border-gray-800">
+            <h2 className="font-bold text-gray-900 dark:text-white">Log Aktivitas Terkini</h2>
           </div>
           <div className="p-5">
             <ul className="space-y-4">
@@ -109,7 +109,7 @@ export default function ValidatorDashboard() {
                 <li key={i} className="flex gap-3 items-start">
                   <div className={`mt-1 w-2.5 h-2.5 rounded-full flex-shrink-0 ${item.status === 'success' ? 'bg-emerald-500' : 'bg-orange-500'}`}></div>
                   <div>
-                    <p className="text-sm text-gray-800 font-medium">{item.action}</p>
+                    <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">{item.action}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{item.time}</p>
                   </div>
                 </li>

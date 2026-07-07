@@ -13,17 +13,17 @@ export default function WakifDashboard() {
     <>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard Wakif</h1>
-          <p className="text-gray-500 mt-1">Pantau dampak dari wakaf jariyah yang telah Anda berikan.</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Dashboard Wakif</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Pantau dampak dari wakaf jariyah yang telah Anda berikan.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center items-center text-center">
-            <h3 className="text-gray-500 font-medium">Total Wakaf Tersalurkan</h3>
+          <div className="stat-card flex flex-col justify-center items-center text-center">
+            <h3 className="text-gray-500 dark:text-gray-400 font-medium">Total Wakaf Tersalurkan</h3>
             <p className="text-4xl font-bold text-primary mt-2">Rp 25.000.000</p>
           </div>
-          <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm flex flex-col justify-center items-center text-center">
-            <h3 className="text-gray-500 font-medium">Proyek Didukung</h3>
+          <div className="stat-card flex flex-col justify-center items-center text-center">
+            <h3 className="text-gray-500 dark:text-gray-400 font-medium">Proyek Didukung</h3>
             <p className="text-4xl font-bold text-secondary mt-2">3 Masjid</p>
           </div>
         </div>
@@ -31,13 +31,13 @@ export default function WakifDashboard() {
         {/* 1. Berita Terkini dipindah ke atas */}
         <div className="mt-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Berita Terkini &amp; Laporan Proyek</h2>
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Berita Terkini &amp; Laporan Proyek</h2>
             <span className="text-sm text-primary font-medium cursor-pointer hover:underline" onClick={() => setModalContent({title: "Arsip Laporan Lengkap", msg: "Membuka repositori dokumen laporan proyek sebelumnya untuk diunduh."})}>Arsip Laporan</span>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* News Card 1 */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+            <div className="card overflow-hidden group">
               <div className="relative h-48 w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
@@ -51,11 +51,11 @@ export default function WakifDashboard() {
               </div>
               <div className="p-5">
                 <div className="text-xs text-gray-500 mb-2">2 Hari yang lalu &bull; Pembangunan Masjid Jami' An-Nur</div>
-                <h3 className="font-bold text-lg text-gray-900 mb-2 leading-tight">Pemasangan Atap Kubah Utama Telah Selesai</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 leading-tight">Pemasangan Atap Kubah Utama Telah Selesai</h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                   Alhamdulillah, berkat dukungan para wakif, proses pemasangan kerangka kubah utama telah berjalan lancar sesuai jadwal. Saat ini tim sedang mempersiapkan pelapisan penutup atap.
                 </p>
-                <div className="flex items-center justify-between border-t border-gray-100 pt-4">
+                <div className="flex items-center justify-between border-t border-gray-100 dark:border-gray-800 pt-4">
                   <button className="text-primary font-semibold text-sm hover:underline" onClick={() => setModalContent({
                     title: "Pemasangan Atap Kubah Utama Telah Selesai", 
                     msg: "Alhamdulillah, proses pemasangan kerangka kubah utama Masjid Jami' An-Nur telah selesai. Saat ini tim fokus pada pelapisan material.",
@@ -75,7 +75,7 @@ export default function WakifDashboard() {
             </div>
 
             {/* News Card 2 */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+            <div className="card overflow-hidden group">
               <div className="relative h-48 w-full overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img 
@@ -115,9 +115,9 @@ export default function WakifDashboard() {
         </div>
 
         {/* 2. Proyek Sedang Berjalan */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-            <h2 className="text-lg font-bold">Proyek Sedang Berjalan</h2>
+        <div className="card overflow-hidden">
+          <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white">Proyek Sedang Berjalan</h2>
             <span className="text-sm text-primary font-medium cursor-pointer hover:underline" onClick={() => setModalContent({title: "Semua Proyek Berjalan", msg: "Memuat daftar lengkap semua proyek wakaf konstruksi yang sedang dalam tahap pengerjaan..."})}>Lihat Semua</span>
           </div>
           <div className="p-0 sm:p-6">
@@ -144,11 +144,11 @@ export default function WakifDashboard() {
                   {/* Item 1 - Completed */}
                   <div className="relative flex items-center justify-between sm:flex-row flex-col sm:even:flex-row-reverse group">
                     <div className="sm:w-5/12 w-full pl-8 sm:pl-0 sm:text-right pr-0 sm:pr-8 mb-2 sm:mb-0">
-                      <h4 className="font-bold text-gray-900">Peletakan Batu Pertama &amp; Pondasi</h4>
-                      <p className="text-sm text-gray-500 mt-1">Pengecoran cakar ayam dan struktur bawah selesai.</p>
+                      <h4 className="font-bold text-gray-900 dark:text-white">Peletakan Batu Pertama &amp; Pondasi</h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Pengecoran cakar ayam dan struktur bawah selesai.</p>
                       <div className="mt-2 flex flex-col sm:items-end gap-1.5">
-                        <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-2 py-1 rounded inline-block w-fit">12 Mei 2026</span>
-                        <span className="text-[11px] font-bold text-gray-700 bg-gray-100 border border-gray-200 px-2 py-1 rounded inline-flex items-center gap-1.5 w-fit">
+                        <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded inline-block w-fit">12 Mei 2026</span>
+                        <span className="text-[11px] font-bold text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-1 rounded inline-flex items-center gap-1.5 w-fit">
                           💰 Anggaran: Rp 120.000.000
                         </span>
                       </div>

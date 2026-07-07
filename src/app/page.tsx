@@ -45,7 +45,7 @@ export default function Home() {
             transition={{ delay: 0.2, duration: 0.5 }}
           >
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            Platform Manajemen Konstruksi Terpercaya
+            Marketplace Konstruksi Wakaf Terpercaya
           </motion.div>
           
           <motion.h1 
@@ -54,9 +54,10 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           >
-            Bangun Kebaikan <br className="hidden md:block" />
+            Marketplace{" "}
+            <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 relative inline-block">
-              Beramal Jariyah
+              Wakaf-Konstruksi
               <motion.div 
                 className="absolute -bottom-2 left-0 right-0 h-2 bg-emerald-500/20 rounded-full blur-sm"
                 initial={{ scaleX: 0 }}
@@ -67,12 +68,13 @@ export default function Home() {
           </motion.h1>
           
           <motion.p 
-            className="text-lg md:text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-10 font-medium"
+            className="text-lg md:text-2xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto leading-relaxed mb-10 font-semibold"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.6 }}
           >
-            Sistem manajemen terintegrasi untuk pengelolaan, pengawasan, dan transparansi pembangunan fasilitas ibadah dan pendidikan Islam di seluruh Indonesia.
+            yang menjamin setiap rupiah
+            {" "}<span className="text-primary font-black">menjadi bangunan nyata.</span>
           </motion.p>
 
           <motion.div 
