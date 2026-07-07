@@ -34,6 +34,14 @@ export default function AuthPage() {
       icon: "🏗️",
       color: "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-500",
     },
+    {
+      id: "validator",
+      name: "Validator Lapangan",
+      description: "Tim Inspeksi & Verifikasi Progres di Lokasi Konstruksi",
+      path: "/validator",
+      icon: "🔍",
+      color: "bg-purple-50 text-purple-700 border-purple-200 hover:border-purple-500",
+    },
   ];
 
   return (
