@@ -1,6 +1,8 @@
+"use client";
 import { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
+import { motion } from "framer-motion";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -10,13 +12,18 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, roleName, sidebarItems }: DashboardLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen flex" style={{ background: 'var(--background)' }}>
       <Sidebar roleName={roleName} items={sidebarItems} />
-      <div className="flex-1 ml-64 flex flex-col">
+      <div className="flex-1 ml-64 flex flex-col min-h-screen">
         <Topbar />
-        <main className="flex-1 p-8 overflow-auto">
+        <motion.main
+          className="flex-1 p-8 overflow-auto"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+        >
           {children}
-        </main>
+        </motion.main>
       </div>
     </div>
   );
