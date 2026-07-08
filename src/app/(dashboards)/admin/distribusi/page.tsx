@@ -13,6 +13,17 @@ const regions = [
 
 export default function DistribusiPage() {
   const [selectedRegion, setSelectedRegion] = useState<number | null>(1);
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [broadcastModal, setBroadcastModal] = useState(false);
+  const [broadcastSent, setBroadcastSent] = useState(false);
+
+  const handleDownload = () => {
+    setIsDownloading(true);
+    setTimeout(() => {
+      setIsDownloading(false);
+      alert("Simulasi: File Laporan_Distribusi_Area.pdf berhasil diunduh.");
+    }, 1500);
+  };
 
   return (
     <div className="space-y-6">
@@ -98,15 +109,72 @@ export default function DistribusiPage() {
                    </div>
                 )}
 
-                <div className="flex gap-4">
-                  <button className="btn-primary text-sm">Unduh Laporan Area (PDF)</button>
-                  <button className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">Kirim Broadcast ke Vendor</button>
+                <div className="flex flex-col sm:flex-row gap-4 mt-6">
+                  <button 
+                    onClick={handleDownload} 
+                    disabled={isDownloading}
+                    className={`btn-primary text-sm flex items-center justify-center gap-2 ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}
+                  >
+                    {isDownloading ? (
+                      <><span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span> Mengunduh...</>
+                    ) : (
+                      <>📄 Unduh Laporan Area (PDF)</>
+                    )}
+                  </button>
+                  <button 
+                    onClick={() => { setBroadcastSent(false); setBroadcastModal(true); }}
+                    className="px-4 py-2 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl font-bold text-sm hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    📢 Kirim Broadcast ke Vendor
+                  </button>
                 </div>
               </motion.div>
             );
           })()}
         </div>
       </div>
+
+      {/* Broadcast Modal Simulation */}
+      {broadcastModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg p-6 border border-gray-100 dark:border-gray-800">
+            {!broadcastSent ? (
+              <>
+                <div className="flex justify-between items-start mb-6">
+                  <div>
+                    <h2 className="text-xl font-black text-gray-900 dark:text-white">Broadcast Rekrutmen Vendor</h2>
+                    <p className="text-sm text-gray-500 mt-1">Kirimkan undangan rekrutmen ke mitra potensial di {regions.find(r => r.id === selectedRegion)?.name}.</p>
+                  </div>
+                  <button onClick={() => setBroadcastModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Target Wilayah</label>
+                    <input type="text" disabled value={regions.find(r => r.id === selectedRegion)?.name || ""} className="w-full p-2.5 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm text-gray-500" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Isi Pesan Broadcast</label>
+                    <textarea rows={4} className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none text-gray-900 dark:text-white" defaultValue={`Kami mendeteksi adanya kekurangan vendor konstruksi tersertifikasi di wilayah Anda. 
+
+Mari bergabung menjadi Mitra Konstruksi Wakaf untuk mendapatkan akses ke tender eksklusif pembangunan fasilitas ibadah dan pendidikan.`} />
+                  </div>
+                </div>
+                <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+                  <button onClick={() => setBroadcastModal(false)} className="px-5 py-2 font-bold text-gray-500">Batal</button>
+                  <button onClick={() => setBroadcastSent(true)} className="btn-primary">Kirim Pesan &rarr;</button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-4xl mx-auto mb-4">✅</div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-2">Broadcast Terkirim!</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-6">Pesan penawaran kemitraan telah disebar ke 120+ kontak vendor potensial di area {regions.find(r => r.id === selectedRegion)?.name}.</p>
+                <button onClick={() => setBroadcastModal(false)} className="btn-primary">Selesai</button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

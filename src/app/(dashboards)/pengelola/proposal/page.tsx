@@ -1,15 +1,84 @@
 "use client";
-
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+
+const LOCATION_DATA = {
+  "Jawa Barat": {
+    "Bandung": {
+      "Cicendo": ["Arjuna", "Husen Sastranegara", "Pamoyanan"],
+      "Coblong": ["Cipaganti", "Dago", "Lebak Siliwangi"],
+    },
+    "Bogor": {
+      "Bogor Tengah": ["Babakan", "Cibogor", "Paledang"],
+      "Bogor Utara": ["Bantarjati", "Cibuluh", "Ciluar"],
+    }
+  },
+  "Jawa Tengah": {
+    "Semarang": {
+      "Semarang Tengah": ["Bangunharjo", "Gabahan", "Kranggan"],
+      "Tembalang": ["Mangunharjo", "Sendangguwo", "Tembalang"],
+    }
+  },
+  "Jawa Timur": {
+    "Surabaya": {
+      "Gubeng": ["Airlangga", "Baratajaya", "Gubeng"],
+      "Wonokromo": ["Darmo", "Jagir", "Wonokromo"],
+    }
+  }
+};
 
 export default function ProposalPage() {
   const router = useRouter();
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Location States
+  const [prov, setProv] = useState("");
+  const [kota, setKota] = useState("");
+  const [kec, setKec] = useState("");
+  
+  const provList = Object.keys(LOCATION_DATA);
+  const kotaList = prov && LOCATION_DATA[prov as keyof typeof LOCATION_DATA] ? Object.keys(LOCATION_DATA[prov as keyof typeof LOCATION_DATA]) : [];
+  const kecList = prov && kota && LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]] ? Object.keys(LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]]) : [];
+  const desaList = prov && kota && kec && LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]][kec as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA][keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]]] ? LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]][kec as keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA][keyof (typeof LOCATION_DATA)[keyof typeof LOCATION_DATA]]] : [];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert("Berhasil! Proposal pengajuan pembangunan Anda telah terkirim dan sedang menunggu kurasi oleh Admin.");
-    router.push("/pengelola");
+    setIsSubmitted(true);
   };
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6 text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 200 }}
+          className="w-24 h-24 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center text-5xl border-4 border-emerald-200 dark:border-emerald-800 shadow-lg"
+        >
+          ✅
+        </motion.div>
+        <div>
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white">Proposal Terkirim!</h2>
+          <p className="text-gray-500 dark:text-gray-400 mt-2">Proposal pengajuan pembangunan Anda telah masuk ke sistem dan sedang menunggu kurasi oleh Admin.</p>
+        </div>
+        <div className="bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 w-full max-w-sm text-left space-y-3">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500 dark:text-gray-400">Status</span>
+            <span className="font-bold text-amber-600 dark:text-amber-400">Menunggu Kurasi ⏳</span>
+          </div>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500 dark:text-gray-400">Langkah Selanjutnya</span>
+            <span className="font-bold text-gray-900 dark:text-white text-right">Verifikasi Lapangan<br/>(Oleh Validator)</span>
+          </div>
+        </div>
+        <button onClick={() => router.push("/pengelola")} className="btn-primary px-8 py-3">
+          Kembali ke Dashboard
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="card p-8 mt-6 max-w-4xl mx-auto">
       <div className="mb-8 border-b border-gray-100 dark:border-gray-800 pb-6">
@@ -46,31 +115,47 @@ export default function ProposalPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Provinsi</label>
-              <select className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white">
-                <option>Pilih Provinsi...</option>
-                <option>Jawa Barat</option>
-                <option>Jawa Tengah</option>
-                <option>Jawa Timur</option>
-                <option>DKI Jakarta</option>
-                <option>Banten</option>
+              <select 
+                value={prov} 
+                onChange={(e) => { setProv(e.target.value); setKota(""); setKec(""); }}
+                className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white"
+              >
+                <option value="">Pilih Provinsi...</option>
+                {provList.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Kota / Kabupaten</label>
-              <select className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white">
-                <option>Pilih Kota/Kab...</option>
+              <select 
+                value={kota} 
+                onChange={(e) => { setKota(e.target.value); setKec(""); }}
+                disabled={!prov}
+                className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white disabled:opacity-50"
+              >
+                <option value="">Pilih Kota/Kab...</option>
+                {kotaList.map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Kecamatan</label>
-              <select className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white">
-                <option>Pilih Kecamatan...</option>
+              <select 
+                value={kec}
+                onChange={(e) => setKec(e.target.value)}
+                disabled={!kota}
+                className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white disabled:opacity-50"
+              >
+                <option value="">Pilih Kecamatan...</option>
+                {kecList.map(k => <option key={k} value={k}>{k}</option>)}
               </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Desa / Kelurahan</label>
-              <select className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white">
-                <option>Pilih Desa/Kelurahan...</option>
+              <select 
+                disabled={!kec}
+                className="w-full p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-primary outline-none text-gray-900 dark:text-white disabled:opacity-50"
+              >
+                <option value="">Pilih Desa/Kelurahan...</option>
+                {desaList.map(d => <option key={d as string} value={d as string}>{d as string}</option>)}
               </select>
             </div>
           </div>
