@@ -3,6 +3,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import Link from "next/link";
 
 export function Topbar() {
   const pathname = usePathname();
@@ -24,16 +25,31 @@ export function Topbar() {
 
   return (
     <header className="topbar h-16 flex items-center justify-between px-8 sticky top-0 z-20">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm">
-        {breadcrumb.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-2">
-            {i > 0 && <span className="text-gray-300 dark:text-gray-600">/</span>}
-            <span className={`font-semibold ${i === breadcrumb.length - 1 ? 'text-gray-800 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
-              {crumb.label}
+      {/* Left side: Back Button & Breadcrumb */}
+      <div className="flex items-center gap-4">
+        <Link 
+          href="/" 
+          className="flex items-center gap-2 text-xs font-bold text-gray-500 hover:text-primary transition-colors bg-gray-100 hover:bg-emerald-50 dark:bg-gray-800 dark:hover:bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-transparent hover:border-emerald-200 dark:hover:border-emerald-800"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          <span className="hidden sm:inline">Beranda</span>
+        </Link>
+        
+        <div className="h-4 w-[1px] bg-gray-300 dark:bg-gray-700 hidden sm:block"></div>
+
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm">
+          {breadcrumb.map((crumb, i) => (
+            <span key={i} className="flex items-center gap-2">
+              {i > 0 && <span className="text-gray-300 dark:text-gray-600">/</span>}
+              <span className={`font-semibold ${i === breadcrumb.length - 1 ? 'text-gray-800 dark:text-gray-100' : 'text-gray-400 dark:text-gray-500'}`}>
+                {crumb.label}
+              </span>
             </span>
-          </span>
-        ))}
+          ))}
+        </div>
       </div>
 
       {/* Right side */}

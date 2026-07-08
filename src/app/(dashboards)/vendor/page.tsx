@@ -22,6 +22,11 @@ const milestones = [
 ];
 
 export default function VendorDashboard() {
+  const [isVerified, setIsVerified] = useState(false);
+  const [kycModal, setKycModal] = useState(false);
+  const [kycSubmitted, setKycSubmitted] = useState(false);
+  const [uploadedDocs, setUploadedDocs] = useState<{[key: string]: boolean}>({});
+
   const [modal, setModal] = useState<{ projectId: number; milestone: number } | null>(null);
   const [submitted, setSubmitted] = useState<number[]>([]);
   const [notes, setNotes] = useState("");
@@ -38,10 +43,41 @@ export default function VendorDashboard() {
     <>
       <div className="space-y-8">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <h1 className="text-2xl font-black text-gray-900 dark:text-white">Dashboard Vendor & Kontraktor</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Kelola eksekusi proyek, laporkan milestone, dan ajukan termin pembayaran.</p>
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex justify-between items-start">
+          <div>
+            <h1 className="text-2xl font-black text-gray-900 dark:text-white">Dashboard Vendor & Kontraktor</h1>
+            <p className="text-gray-500 dark:text-gray-400 mt-1">Kelola eksekusi proyek, laporkan milestone, dan ajukan termin pembayaran.</p>
+          </div>
+          {isVerified && <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>Vendor Terverifikasi</span>}
+          {kycSubmitted && !isVerified && <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>Menunggu Review Admin</span>}
         </motion.div>
+
+        {!isVerified && !kycSubmitted && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center text-3xl flex-shrink-0">⚠️</div>
+            <div className="flex-1 text-center md:text-left">
+              <h2 className="text-lg font-black text-red-900 dark:text-red-400">Akun Vendor Belum Terverifikasi (KYC Required)</h2>
+              <p className="text-red-700 dark:text-red-300 text-sm mt-1 mb-4 md:mb-0">Anda tidak dapat melihat tender atau melaporkan progres sebelum menyelesaikan proses verifikasi profil perusahaan dan mengunggah dokumen legalitas (NIB, SIUJK).</p>
+            </div>
+            <button onClick={() => setKycModal(true)} className="w-full md:w-auto px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-red-600/20 whitespace-nowrap">
+              Lengkapi Data Legalitas &rarr;
+            </button>
+          </motion.div>
+        )}
+
+        {kycSubmitted && !isVerified && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-2xl p-6 flex items-center gap-5 shadow-sm">
+            <div className="text-3xl animate-bounce">⏳</div>
+            <div>
+              <h2 className="font-bold text-amber-900 dark:text-amber-400">Dokumen Sedang Direview oleh Admin</h2>
+              <p className="text-sm text-amber-700 dark:text-amber-300/80 mt-1">Terima kasih telah melengkapi data. Tim admin sedang melakukan pengecekan keabsahan dokumen legalitas Anda. Mohon tunggu maksimal 1x24 jam.</p>
+              <button onClick={() => setIsVerified(true)} className="mt-3 text-xs bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 px-3 py-1 rounded font-bold hover:opacity-80">(Simulasi) Setujui Admin</button>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Dashboard Content (Only visible if verified) */}
+        <div className={`space-y-8 transition-opacity duration-500 ${!isVerified ? 'opacity-30 pointer-events-none blur-[2px]' : 'opacity-100'}`}>
 
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -151,7 +187,80 @@ export default function VendorDashboard() {
             </button>
           ))}
         </motion.div>
+        {/* Bottom wrapper closure */}
+        </div>
       </div>
+
+      {/* KYC Modal */}
+      {kycModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto border border-gray-100 dark:border-gray-800">
+            <div className="flex justify-between items-start mb-6">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 dark:text-white">Verifikasi Profil Vendor (KYC)</h2>
+                <p className="text-sm text-gray-500 mt-1">Harap isi form ini dengan data asli untuk diverifikasi oleh tim legal kami.</p>
+              </div>
+              <button onClick={() => setKycModal(false)} className="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Bentuk Badan Usaha</label>
+                  <select className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none">
+                    <option>PT (Perseroan Terbatas)</option>
+                    <option>CV (Commanditaire Vennootschap)</option>
+                    <option>Swakelola / Perorangan</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Nama Perusahaan</label>
+                  <input type="text" className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none" placeholder="PT..." />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Upload Dokumen Legalitas (PDF/JPG)</label>
+                <div className="grid grid-cols-2 gap-3">
+                  {['NIB / TDP', 'SIUJK (Bila Ada)', 'NPWP Perusahaan', 'KTP Direktur Utama'].map((doc, i) => (
+                    <label key={i} className={`border ${uploadedDocs[doc] ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-dashed border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'} rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer transition-colors text-center gap-2 relative overflow-hidden`}>
+                      <input 
+                        type="file" 
+                        className="hidden" 
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        onChange={(e) => {
+                          if(e.target.files && e.target.files.length > 0) {
+                            setUploadedDocs(prev => ({...prev, [doc]: true}));
+                          }
+                        }} 
+                      />
+                      <span className="text-2xl">{uploadedDocs[doc] ? '✅' : '📄'}</span>
+                      <span className={`text-xs font-semibold ${uploadedDocs[doc] ? 'text-emerald-700 dark:text-emerald-400' : 'text-gray-600 dark:text-gray-400'}`}>
+                        {uploadedDocs[doc] ? `${doc} Diunggah` : `Upload ${doc}`}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Informasi Rekening (Pencairan Termin)</label>
+                <div className="flex gap-2">
+                  <select className="p-2.5 w-1/3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none">
+                    <option>Bank BSI</option><option>BCA</option><option>Mandiri</option>
+                  </select>
+                  <input type="text" className="w-2/3 p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm outline-none" placeholder="Nomor Rekening" />
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 pt-4">
+              <button onClick={() => setKycModal(false)} className="px-5 py-2 font-bold text-gray-500">Batal</button>
+              <button onClick={() => { setKycSubmitted(true); setKycModal(false); }} className="btn-primary">Kirim & Verifikasi</button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Milestone Submit Modal */}
       {modal && modal.milestone > 0 && (
