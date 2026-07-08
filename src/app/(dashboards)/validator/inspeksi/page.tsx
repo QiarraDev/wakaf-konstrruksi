@@ -81,30 +81,40 @@ export default function InspeksiPage() {
       </div>
 
       {/* Checklist Categories */}
-      <div className="space-y-4">
-        {checklistItems.map((cat, catIdx) => (
-          <div key={catIdx} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-            <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
-              <h3 className="font-bold text-gray-900 text-sm">{catIdx + 1}. {cat.category}</h3>
-            </div>
-            <ul className="divide-y divide-gray-50">
+      <div className="space-y-6">
+        {checklistItems.map((cat, catIdx) => {
+          // Calculate the starting index for this category's items to make it 1-12 globally
+          const startingItemNumber = checklistItems.slice(0, catIdx).reduce((acc, curr) => acc + curr.items.length, 0);
+
+          return (
+            <div key={catIdx} className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+              <div className="bg-gray-50 dark:bg-gray-800 px-5 py-3 border-b border-gray-200 dark:border-gray-800">
+                <h3 className="font-bold text-gray-900 dark:text-white text-sm">{cat.category}</h3>
+              </div>
+            <ul className="divide-y divide-gray-50 dark:divide-gray-800/50">
               {cat.items.map((item, itemIdx) => {
                 const key = `${catIdx}-${itemIdx}`;
+                const globalItemNumber = startingItemNumber + itemIdx + 1;
+                
                 return (
-                  <li key={itemIdx} className="px-5 py-4">
+                  <li key={itemIdx} className="px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <label className="flex items-start gap-4 cursor-pointer group">
-                      <div className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${checked[key] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 group-hover:border-primary'}`}>
+                      <div className="text-gray-400 dark:text-gray-500 font-bold text-sm min-w-[20px] pt-1">
+                        {globalItemNumber}.
+                      </div>
+                      <div className={`mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all ${checked[key] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-300 dark:border-gray-600 group-hover:border-primary'}`}>
                         {checked[key] && <span className="text-white text-sm font-bold">✓</span>}
                       </div>
                       <input type="checkbox" className="sr-only" checked={!!checked[key]} onChange={() => toggleCheck(key)} />
-                      <span className={`text-sm leading-relaxed transition-colors ${checked[key] ? 'text-gray-400 line-through' : 'text-gray-800 font-medium'}`}>{item}</span>
+                      <span className={`text-sm leading-relaxed transition-colors pt-0.5 ${checked[key] ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-800 dark:text-gray-200 font-medium'}`}>{item}</span>
                     </label>
                   </li>
                 );
               })}
             </ul>
           </div>
-        ))}
+          );
+        })}
       </div>
 
       <button onClick={() => setSubmitted(true)} className="w-full bg-primary text-white py-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:bg-primary-dark transition-all hover:-translate-y-0.5 text-lg">
