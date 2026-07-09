@@ -7,6 +7,11 @@ const sidebarItems = [
     "icon": "📋"
   },
   {
+    "name": "Final Approval 👑",
+    "href": "/admin/approval",
+    "icon": "🏆"
+  },
+  {
     "name": "Validasi Vendor",
     "href": "/admin/vendor",
     "icon": "✅"
