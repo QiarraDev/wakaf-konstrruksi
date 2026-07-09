@@ -1,5 +1,5 @@
 "use client";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -7,14 +7,33 @@ import Link from "next/link";
 
 export function Topbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [notifCount] = useState(3);
+  const [approvalNotifDismissed, setApprovalNotifDismissed] = useState(false);
 
-  const notifications = [
-    { icon: "📋", text: "PRJ-003 menunggu kurasi Anda", time: "5 mnt lalu", unread: true },
-    { icon: "✅", text: "Laporan RPT-1042 telah disetujui Admin", time: "1 jam lalu", unread: true },
-    { icon: "⚠️", text: "Revisi RAB dibutuhkan oleh Vendor", time: "2 jam lalu", unread: false },
+  // Detect if we're in admin dashboard
+  const isAdminDashboard = pathname.startsWith("/admin");
+
+  // Super Admin's special approval notification — only for admin role
+  const superAdminNotif = {
+    icon: "👑",
+    text: "1 Proyek menunggu Final Approval Anda — Renovasi Pesantren Al-Huda",
+    time: "Baru saja",
+    unread: true,
+    urgent: true,
+    href: "/admin/approval",
+  };
+
+  const baseNotifications = [
+    { icon: "✅", text: "Laporan validator PRJ-004 diterima oleh Admin", time: "15 mnt lalu", unread: true, urgent: false, href: null },
+    { icon: "⚠️", text: "Revisi RAB dibutuhkan oleh Vendor CV. Bangun", time: "1 jam lalu", unread: false, urgent: false, href: null },
   ];
+
+  const notifications = isAdminDashboard && !approvalNotifDismissed
+    ? [superAdminNotif, ...baseNotifications]
+    : baseNotifications;
+
+  const unreadCount = notifications.filter(n => n.unread).length;
 
   // Generate breadcrumb from path
   const segments = pathname.split('/').filter(Boolean);
@@ -71,18 +90,30 @@ export function Topbar() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => setNotifOpen(!notifOpen)}
-            className="relative p-2 text-gray-500 hover:text-primary transition-colors rounded-xl hover:bg-gray-100"
+            className="relative p-2 text-gray-500 hover:text-primary transition-colors rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            {/* Bell icon with shake animation when urgent notif exists */}
+            <motion.svg
+              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              animate={isAdminDashboard && !approvalNotifDismissed ? { rotate: [0, 15, -15, 10, -10, 0] } : {}}
+              transition={{ repeat: Infinity, repeatDelay: 3, duration: 0.5 }}
+            >
               <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-            {notifCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }} animate={{ scale: 1 }}
-                className="absolute top-1 right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-bold flex items-center justify-center"
-              >
-                {notifCount}
-              </motion.span>
+            </motion.svg>
+
+            {/* Badge merah berkedip untuk urgent */}
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 flex items-center justify-center">
+                {isAdminDashboard && !approvalNotifDismissed && (
+                  <span className="absolute inline-flex w-4 h-4 rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                )}
+                <motion.span
+                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  className="relative w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-bold flex items-center justify-center"
+                >
+                  {unreadCount}
+                </motion.span>
+              </span>
             )}
           </motion.button>
 
@@ -97,16 +128,37 @@ export function Topbar() {
               >
                 <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800 flex justify-between items-center">
                   <p className="font-bold text-sm text-gray-900 dark:text-gray-100">Notifikasi</p>
-                  <button className="text-xs text-primary font-semibold hover:underline">Tandai semua dibaca</button>
+                  <button
+                    onClick={() => { setApprovalNotifDismissed(true); setNotifOpen(false); }}
+                    className="text-xs text-primary font-semibold hover:underline"
+                  >
+                    Tandai semua dibaca
+                  </button>
                 </div>
+
                 {notifications.map((n, i) => (
-                  <div key={i} className={`px-4 py-3 flex gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer ${n.unread ? '' : 'opacity-60'}`}>
+                  <div
+                    key={i}
+                    onClick={() => { if (n.href) { router.push(n.href); setNotifOpen(false); } }}
+                    className={`px-4 py-3 flex gap-3 transition-colors cursor-pointer ${
+                      n.urgent
+                        ? 'bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-l-4 border-orange-500'
+                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
+                    } ${!n.unread ? 'opacity-60' : ''}`}
+                  >
                     <span className="text-lg">{n.icon}</span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-gray-800 dark:text-gray-200 font-medium leading-tight">{n.text}</p>
+                      <p className={`text-sm font-medium leading-tight ${n.urgent ? 'text-orange-900 dark:text-orange-300 font-bold' : 'text-gray-800 dark:text-gray-200'}`}>
+                        {n.text}
+                      </p>
                       <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
+                      {n.urgent && n.href && (
+                        <span className="text-xs text-orange-600 dark:text-orange-400 font-bold mt-1 inline-block">
+                          Klik untuk meninjau →
+                        </span>
+                      )}
                     </div>
-                    {n.unread && <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5"></div>}
+                    {n.unread && <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${n.urgent ? 'bg-orange-500' : 'bg-primary'}`}></div>}
                   </div>
                 ))}
               </motion.div>
@@ -116,15 +168,20 @@ export function Topbar() {
 
         {/* Avatar */}
         <div className="flex items-center gap-2.5 pl-2 border-l border-gray-200 dark:border-gray-800">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-emerald-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary/20">
-            U
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-md ${isAdminDashboard ? 'bg-gradient-to-br from-orange-500 to-amber-500 shadow-orange-500/20' : 'bg-gradient-to-br from-primary to-emerald-600 shadow-primary/20'}`}>
+            {isAdminDashboard ? '👑' : 'U'}
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">User</p>
-            <p className="text-[11px] text-gray-400 dark:text-gray-500">Admin</p>
+            <p className="text-sm font-bold text-gray-900 dark:text-gray-100 leading-tight">
+              {isAdminDashboard ? 'Super Admin' : 'User'}
+            </p>
+            <p className="text-[11px] text-gray-400 dark:text-gray-500">
+              {isAdminDashboard ? 'Pimpinan / Komite' : 'Staff'}
+            </p>
           </div>
         </div>
       </div>
     </header>
   );
 }
+
