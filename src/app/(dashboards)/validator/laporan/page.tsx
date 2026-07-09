@@ -1,10 +1,12 @@
 "use client";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNotification } from "@/context/NotificationContext";
 
 export default function LaporanPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const { addNotification } = useNotification();
   const [form, setForm] = useState({
     project: "Masjid Jami' An-Nur",
     milestone: "60",
@@ -101,7 +103,31 @@ export default function LaporanPage() {
     setForm(f => ({ ...f, photos: [...f.photos, `${labels[idx]}||${colors[idx]}`] }));
   };
 
-  const handleSubmit = () => setSubmitted(true);
+  const handleSubmit = () => {
+    setSubmitted(true);
+    
+    // Trigger notification to admin/superadmin
+    addNotification({
+      type: "validator_report",
+      icon: "📋",
+      title: "Laporan Validator Baru Masuk",
+      description: `Laporan dari validator untuk proyek ${form.project}`,
+      urgent: true,
+      projectId: `PRJ-${Math.floor(Math.random() * 9000) + 1000}`,
+      projectName: form.project,
+      validatorName: "Ahmad Fauzi",
+      validatorScore: parseInt(form.milestone),
+      href: "/admin/approval",
+      data: {
+        milestone: parseInt(form.milestone),
+        kondisi: form.kondisi,
+        summary: `Validator melaporkan progress ${form.milestone}% - Kondisi: ${form.kondisi}`,
+        region: "Jawa Barat",
+        dana: "Rp 1.2M",
+        photos: form.photos.length,
+      },
+    });
+  };
 
   const resetAll = () => {
     setSubmitted(false);

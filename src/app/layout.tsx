@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 const font = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -25,7 +26,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          {children}
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
         </ThemeProvider>
       </body>
     </html>

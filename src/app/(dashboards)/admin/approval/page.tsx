@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNotification } from "@/context/NotificationContext";
+import { ReportDetailPanel } from "@/components/ReportDetailPanel";
 
 const PENDING_PROJECTS = [
   {
@@ -21,7 +23,10 @@ export default function SuperAdminApprovalPage() {
   const [showLoginNotif, setShowLoginNotif] = useState(true);
   const [projects, setProjects] = useState(PENDING_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<typeof PENDING_PROJECTS[0] | null>(null);
+  const [selectedNotification, setSelectedNotification] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<"approval" | "reports">("approval");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const { notifications, dismissNotification, markAsRead } = useNotification();
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -40,7 +45,22 @@ export default function SuperAdminApprovalPage() {
     showToast(`❌ Proyek ${project.id} dikembalikan ke Admin untuk perbaikan.`);
   };
 
+  const handleApproveReport = (notif: any) => {
+    markAsRead(notif.id);
+    dismissNotification(notif.id);
+    showToast(`✅ Laporan ${notif.projectId} dari validator telah divalidasi!`);
+    setSelectedNotification(null);
+  };
+
+  const handlePublish = (notif: any) => {
+    markAsRead(notif.id);
+    dismissNotification(notif.id);
+    showToast(`🎉 Proyek ${notif.projectName} telah dipublikasikan di portal!`);
+    setSelectedNotification(null);
+  };
+
   const pendingCount = projects.filter(p => p.status === "Menunggu Approval Pimpinan").length;
+  const pendingReports = notifications.filter(n => n.type === "validator_report" && n.unread);
 
   return (
     <div className="bg-transparent mt-6 space-y-6">
@@ -87,7 +107,7 @@ export default function SuperAdminApprovalPage() {
               <div className="p-6 space-y-4">
                 <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-xl">
                   <p className="text-orange-900 dark:text-orange-300 font-black text-lg">
-                    {pendingCount} Proyek Menunggu Persetujuan Anda
+                    {pendingCount + pendingReports.length} Item Menunggu Perhatian Anda
                   </p>
                   <p className="text-orange-700 dark:text-orange-400 text-sm mt-1">
                     Admin Operasional telah selesai melakukan kurasi dan pengiriman tim Validator Lapangan. Laporan telah diterima dan siap untuk ditelaah oleh Pimpinan.
@@ -125,12 +145,41 @@ export default function SuperAdminApprovalPage() {
           </div>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Wewenang tertinggi untuk menyetujui proyek dan mempublikasikannya kepada Wakif.</p>
         </div>
-        {pendingCount > 0 && (
+        {(pendingCount > 0 || pendingReports.length > 0) && (
           <motion.div animate={{ scale: [1, 1.05, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 px-4 py-2 rounded-2xl text-center">
             <p className="text-xs text-red-700 dark:text-red-400 font-bold">Menunggu Keputusan</p>
-            <p className="text-3xl font-black text-red-600 dark:text-red-400">{pendingCount}</p>
+            <p className="text-3xl font-black text-red-600 dark:text-red-400">{pendingCount + pendingReports.length}</p>
           </motion.div>
         )}
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="flex gap-2 border-b border-gray-200 dark:border-gray-800">
+        <button
+          onClick={() => setActiveTab("approval")}
+          className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors ${
+            activeTab === "approval"
+              ? "border-primary text-primary"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          📋 Approval Proyek ({pendingCount})
+        </button>
+        <button
+          onClick={() => setActiveTab("reports")}
+          className={`px-4 py-3 font-bold text-sm border-b-2 transition-colors relative ${
+            activeTab === "reports"
+              ? "border-primary text-primary"
+              : "border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          }`}
+        >
+          📊 Laporan Validator
+          {pendingReports.length > 0 && (
+            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+              {pendingReports.length}
+            </span>
+          )}
+        </button>
       </div>
 
       {/* Toast Notification */}
@@ -142,61 +191,139 @@ export default function SuperAdminApprovalPage() {
         )}
       </AnimatePresence>
 
-      {/* === PROJECT LIST === */}
-      <div className="space-y-4">
-        <h2 className="text-base font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Antrian Persetujuan</h2>
+      {/* === TAB 1: APPROVAL PROYEK === */}
+      {activeTab === "approval" && (
+        <div className="space-y-4">
+          <h2 className="text-base font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Antrian Persetujuan</h2>
 
-        {projects.length === 0 && (
-          <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center">
-            <div className="text-5xl mb-4">🎉</div>
-            <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">Tidak Ada Antrean</h3>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Semua proyek telah diproses. Kerja bagus!</p>
-          </div>
-        )}
+          {projects.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center">
+              <div className="text-5xl mb-4">🎉</div>
+              <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">Tidak Ada Antrean</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Semua proyek telah diproses. Kerja bagus!</p>
+            </div>
+          ) : (
+            projects.map((project, i) => (
+              <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+                <div className="p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-bold text-gray-400 dark:text-gray-500">{project.id}</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                        project.status === "Dipublikasikan"
+                          ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400"
+                          : "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400"
+                      }`}>
+                        {project.status}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white">{project.name}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">📍 {project.region} · PIC Nazhir: {project.pic}</p>
 
-        {projects.map((project, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
-            <div className="p-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-bold text-gray-400 dark:text-gray-500">{project.id}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                    project.status === "Dipublikasikan"
-                      ? "bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400"
-                      : "bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400"
-                  }`}>
-                    {project.status}
-                  </span>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      <div className="bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300">
+                        💰 Dana: {project.dana}
+                      </div>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800 text-xs font-bold text-blue-700 dark:text-blue-400">
+                        🔍 Validator: {project.validatorName}
+                      </div>
+                      <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${project.validatorScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-400'}`}>
+                        ⭐ Skor Inspeksi: {project.validatorScore}/100
+                      </div>
+                    </div>
+                  </div>
+
+                  {project.status !== "Dipublikasikan" ? (
+                    <button onClick={() => setSelectedProject(project)} className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 text-sm">
+                      👑 Beri Keputusan
+                    </button>
+                  ) : (
+                    <div className="shrink-0 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold px-6 py-3 rounded-xl text-sm text-center border border-emerald-200 dark:border-emerald-800">
+                      ✅ Sudah Disetujui
+                    </div>
+                  )}
                 </div>
-                <h3 className="text-lg font-black text-gray-900 dark:text-white">{project.name}</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-medium">📍 {project.region} · PIC Nazhir: {project.pic}</p>
+              </motion.div>
+            ))
+          )}
+        </div>
+      )}
 
-                <div className="mt-3 flex flex-wrap gap-3">
-                  <div className="bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300">
-                    💰 Dana: {project.dana}
-                  </div>
-                  <div className="bg-blue-50 dark:bg-blue-900/20 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-800 text-xs font-bold text-blue-700 dark:text-blue-400">
-                    🔍 Validator: {project.validatorName}
-                  </div>
-                  <div className={`px-3 py-1.5 rounded-lg border text-xs font-bold ${project.validatorScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-100 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-400'}`}>
-                    ⭐ Skor Inspeksi: {project.validatorScore}/100
-                  </div>
-                </div>
+      {/* === TAB 2: LAPORAN VALIDATOR === */}
+      {activeTab === "reports" && (
+        <div className="space-y-4">
+          <h2 className="text-base font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider">Laporan Dari Validator</h2>
+
+          {pendingReports.length === 0 ? (
+            <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-12 text-center">
+              <div className="text-5xl mb-4">✅</div>
+              <h3 className="text-lg font-bold text-gray-700 dark:text-gray-300">Semua Laporan Terproses</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Tidak ada laporan validator yang menunggu validasi.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              {/* Daftar Laporan */}
+              <div className="lg:col-span-2 space-y-3">
+                {pendingReports.map((notif) => (
+                  <motion.button
+                    key={notif.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    onClick={() => setSelectedNotification(notif)}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
+                      selectedNotification?.id === notif.id
+                        ? "bg-orange-50 dark:bg-orange-900/20 border-orange-400 dark:border-orange-600 shadow-md"
+                        : "bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800 hover:border-orange-300 dark:hover:border-orange-700"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-2xl mt-1">{notif.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-gray-900 dark:text-white">{notif.title}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">{notif.projectName}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-xs font-bold bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 px-2 py-1 rounded">
+                            {notif.projectId}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            {notif.timestamp.toLocaleTimeString("id-ID")}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex-shrink-0">
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                          className="w-3 h-3 rounded-full bg-red-500"
+                        />
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
               </div>
 
-              {project.status !== "Dipublikasikan" ? (
-                <button onClick={() => setSelectedProject(project)} className="shrink-0 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-3 rounded-xl shadow-lg shadow-orange-500/20 transition-all hover:-translate-y-0.5 text-sm">
-                  👑 Beri Keputusan
-                </button>
-              ) : (
-                <div className="shrink-0 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 font-bold px-6 py-3 rounded-xl text-sm text-center border border-emerald-200 dark:border-emerald-800">
-                  ✅ Sudah Disetujui
-                </div>
-              )}
+              {/* Detail Panel */}
+              <AnimatePresence mode="wait">
+                {selectedNotification && (
+                  <motion.div
+                    key="detail"
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 h-fit sticky top-6"
+                  >
+                    <ReportDetailPanel
+                      notification={selectedNotification}
+                      onApprove={() => handleApproveReport(selectedNotification)}
+                      onPublish={() => handlePublish(selectedNotification)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          </motion.div>
-        ))}
-      </div>
+          )}
+        </div>
+      )}
 
       {/* === DECISION MODAL === */}
       <AnimatePresence>

@@ -1,39 +1,29 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import Link from "next/link";
+import { useNotification } from "@/context/NotificationContext";
 
 export function Topbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [notifOpen, setNotifOpen] = useState(false);
-  const [approvalNotifDismissed, setApprovalNotifDismissed] = useState(false);
+  const { notifications, unreadCount, markAsRead } = useNotification();
 
   // Detect if we're in admin dashboard
   const isAdminDashboard = pathname.startsWith("/admin");
+  const isSuperAdmin = isAdminDashboard; // Simplified for now
 
-  // Super Admin's special approval notification — only for admin role
-  const superAdminNotif = {
-    icon: "👑",
-    text: "1 Proyek menunggu Final Approval Anda — Renovasi Pesantren Al-Huda",
-    time: "Baru saja",
-    unread: true,
-    urgent: true,
-    href: "/admin/approval",
-  };
+  // Filter notifications based on role
+  const filteredNotifications = isSuperAdmin
+    ? notifications
+    : notifications.filter((n) => n.type !== "approval");
 
-  const baseNotifications = [
-    { icon: "✅", text: "Laporan validator PRJ-004 diterima oleh Admin", time: "15 mnt lalu", unread: true, urgent: false, href: null },
-    { icon: "⚠️", text: "Revisi RAB dibutuhkan oleh Vendor CV. Bangun", time: "1 jam lalu", unread: false, urgent: false, href: null },
-  ];
-
-  const notifications = isAdminDashboard && !approvalNotifDismissed
-    ? [superAdminNotif, ...baseNotifications]
-    : baseNotifications;
-
-  const unreadCount = notifications.filter(n => n.unread).length;
+  const unreadCountFiltered = filteredNotifications.filter(
+    (n) => n.unread
+  ).length;
 
   // Generate breadcrumb from path
   const segments = pathname.split('/').filter(Boolean);
@@ -94,24 +84,43 @@ export function Topbar() {
           >
             {/* Bell icon with shake animation when urgent notif exists */}
             <motion.svg
-              width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              animate={isAdminDashboard && !approvalNotifDismissed ? { rotate: [0, 15, -15, 10, -10, 0] } : {}}
-              transition={{ repeat: Infinity, repeatDelay: 3, duration: 0.5 }}
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              animate={
+                isSuperAdmin &&
+                filteredNotifications.some((n) => n.urgent && n.unread)
+                  ? { rotate: [0, 15, -15, 10, -10, 0] }
+                  : {}
+              }
+              transition={{
+                repeat: Infinity,
+                repeatDelay: 3,
+                duration: 0.5,
+              }}
             >
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
             </motion.svg>
 
             {/* Badge merah berkedip untuk urgent */}
-            {unreadCount > 0 && (
+            {unreadCountFiltered > 0 && (
               <span className="absolute top-1 right-1 flex items-center justify-center">
-                {isAdminDashboard && !approvalNotifDismissed && (
-                  <span className="absolute inline-flex w-4 h-4 rounded-full bg-red-400 opacity-75 animate-ping"></span>
-                )}
+                {isSuperAdmin &&
+                  filteredNotifications.some((n) => n.urgent && n.unread) && (
+                    <span className="absolute inline-flex w-4 h-4 rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                  )}
                 <motion.span
-                  initial={{ scale: 0 }} animate={{ scale: 1 }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
                   className="relative w-4 h-4 bg-red-500 rounded-full text-[9px] text-white font-bold flex items-center justify-center"
                 >
-                  {unreadCount}
+                  {unreadCountFiltered}
                 </motion.span>
               </span>
             )}
@@ -127,40 +136,80 @@ export function Topbar() {
                 className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50"
               >
                 <div className="px-4 py-3 border-b border-gray-50 dark:border-gray-800 flex justify-between items-center">
-                  <p className="font-bold text-sm text-gray-900 dark:text-gray-100">Notifikasi</p>
+                  <p className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                    Notifikasi {unreadCountFiltered > 0 && `(${unreadCountFiltered})`}
+                  </p>
                   <button
-                    onClick={() => { setApprovalNotifDismissed(true); setNotifOpen(false); }}
+                    onClick={() => {
+                      setNotifOpen(false);
+                    }}
                     className="text-xs text-primary font-semibold hover:underline"
                   >
-                    Tandai semua dibaca
+                    Tutup
                   </button>
                 </div>
 
-                {notifications.map((n, i) => (
-                  <div
-                    key={i}
-                    onClick={() => { if (n.href) { router.push(n.href); setNotifOpen(false); } }}
-                    className={`px-4 py-3 flex gap-3 transition-colors cursor-pointer ${
-                      n.urgent
-                        ? 'bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-l-4 border-orange-500'
-                        : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-                    } ${!n.unread ? 'opacity-60' : ''}`}
-                  >
-                    <span className="text-lg">{n.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-medium leading-tight ${n.urgent ? 'text-orange-900 dark:text-orange-300 font-bold' : 'text-gray-800 dark:text-gray-200'}`}>
-                        {n.text}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{n.time}</p>
-                      {n.urgent && n.href && (
-                        <span className="text-xs text-orange-600 dark:text-orange-400 font-bold mt-1 inline-block">
-                          Klik untuk meninjau →
-                        </span>
-                      )}
-                    </div>
-                    {n.unread && <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${n.urgent ? 'bg-orange-500' : 'bg-primary'}`}></div>}
+                {filteredNotifications.length === 0 ? (
+                  <div className="px-4 py-8 text-center text-sm text-gray-400">
+                    Tidak ada notifikasi saat ini
                   </div>
-                ))}
+                ) : (
+                  <div className="max-h-96 overflow-y-auto">
+                    {filteredNotifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          if (n.href) {
+                            markAsRead(n.id);
+                            router.push(n.href);
+                            setNotifOpen(false);
+                          }
+                        }}
+                        className={`px-4 py-3 flex gap-3 transition-colors ${
+                          n.href ? "cursor-pointer" : ""
+                        } ${
+                          n.urgent
+                            ? "bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 border-l-4 border-orange-500"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-800"
+                        } ${!n.unread ? "opacity-60" : ""}`}
+                      >
+                        <span className="text-lg flex-shrink-0">{n.icon}</span>
+                        <div className="flex-1 min-w-0">
+                          <p
+                            className={`text-sm font-medium leading-tight ${
+                              n.urgent
+                                ? "text-orange-900 dark:text-orange-300 font-bold"
+                                : "text-gray-800 dark:text-gray-200"
+                            }`}
+                          >
+                            {n.title}
+                          </p>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                            {n.projectName}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {n.timestamp.toLocaleTimeString("id-ID", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                          {n.urgent && n.href && (
+                            <span className="text-xs text-orange-600 dark:text-orange-400 font-bold mt-1 inline-block">
+                              Klik untuk meninjau →
+                            </span>
+                          )}
+                        </div>
+                        {n.unread && (
+                          <div
+                            className={`w-2 h-2 rounded-full flex-shrink-0 mt-1.5 ${
+                              n.urgent ? "bg-orange-500" : "bg-primary"
+                            }`}
+                          ></div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
