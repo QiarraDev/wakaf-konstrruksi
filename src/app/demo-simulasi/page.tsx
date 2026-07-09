@@ -172,19 +172,46 @@ export default function DemoSimulasiPage() {
     } else if (state.currentRole === "superadmin") {
       if (state.currentScreen === "dashboard") {
         nextState = {
+          currentScreen: "review-dokumen",
+          projectData: {
+            ...state.projectData,
+            status: "Review Dokumen",
+            progress: 25,
+          },
+        };
+      } else if (state.currentScreen === "review-dokumen") {
+        nextState = {
           currentScreen: "final-approval",
           projectData: {
             ...state.projectData,
-            status: "Dipublikasikan",
-            progress: 100,
+            status: "Final Approval",
+            progress: 50,
           },
         };
       } else if (state.currentScreen === "final-approval") {
+        nextState = {
+          currentScreen: "publikasi-portal",
+          projectData: {
+            ...state.projectData,
+            status: "Dipublikasikan",
+            progress: 75,
+          },
+        };
+      } else if (state.currentScreen === "publikasi-portal") {
         nextState = {
           currentScreen: "penggalangan-dana",
           projectData: {
             ...state.projectData,
             status: "Penggalangan Dana",
+            progress: 85,
+          },
+        };
+      } else if (state.currentScreen === "penggalangan-dana") {
+        nextState = {
+          currentScreen: "serah-terima",
+          projectData: {
+            ...state.projectData,
+            status: "Serah Terima Oversee",
             progress: 100,
           },
         };
@@ -549,18 +576,165 @@ export default function DemoSimulasiPage() {
               </div>
             )}
 
+            {state.currentScreen === "review-dokumen" && (
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">📋 Review Dokumen Lengkap</h2>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0 }}
+                      className="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl"
+                    >
+                      <p className="font-bold text-blue-900 dark:text-blue-400 mb-3">✅ Proposal & RAB</p>
+                      <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                        <li>✅ Proposal: Lengkap & Valid</li>
+                        <li>✅ AIW: Terverifikasi</li>
+                        <li>✅ RAB: Sesuai Standar</li>
+                        <li>✅ Desain: Jelas & Detail</li>
+                      </ul>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 }}
+                      className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl"
+                    >
+                      <p className="font-bold text-emerald-900 dark:text-emerald-400 mb-3">✅ Inspeksi Validator</p>
+                      <ul className="text-sm text-emerald-800 dark:text-emerald-300 space-y-1">
+                        <li>✅ Skor: 95/100</li>
+                        <li>✅ Foto: 15 dokumentasi</li>
+                        <li>✅ Legalitas: Terverifikasi</li>
+                        <li>✅ Lapangan: Siap Dibangun</li>
+                      </ul>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="p-4 bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl"
+                    >
+                      <p className="font-bold text-purple-900 dark:text-purple-400 mb-3">✅ Admin Kurasi</p>
+                      <ul className="text-sm text-purple-800 dark:text-purple-300 space-y-1">
+                        <li>✅ Kelengkapan: 100%</li>
+                        <li>✅ Kesesuaian: Valid</li>
+                        <li>✅ Rekomendasi: Approve</li>
+                        <li>✅ Forward: Ke Super Admin</li>
+                      </ul>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.3 }}
+                      className="p-4 bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-xl"
+                    >
+                      <p className="font-bold text-orange-900 dark:text-orange-400 mb-3">📊 Ringkasan Eksekutif</p>
+                      <ul className="text-sm text-orange-800 dark:text-orange-300 space-y-1">
+                        <li>🏗️ Proyek: Masjid 500m²</li>
+                        <li>💰 Budget: Rp 1.2M (Valid)</li>
+                        <li>📍 Lokasi: Jawa Barat</li>
+                        <li>🎯 Kebutuhan: Jelas</li>
+                      </ul>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {state.currentScreen === "final-approval" && (
               <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">👑 Final Approval & Publikasi</h2>
-                <div className="space-y-4">
-                  <div className="p-6 border-2 border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
-                    <h3 className="font-bold text-emerald-900 dark:text-emerald-400">✅ Semua Standar Terpenuhi</h3>
-                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-2">
-                      Proposal lengkap, inspeksi lulus, dan siap untuk dipublikasikan ke portal publik
-                    </p>
-                    <div className="mt-4 flex gap-2">
-                      <span className="px-3 py-2 text-xs font-bold bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-400 rounded">🎉 PUBLIKASIKAN</span>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">👑 Final Approval - Pimpinan</h2>
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/30 dark:to-amber-900/30 border-2 border-orange-200 dark:border-orange-800 rounded-xl text-center"
+                  >
+                    <p className="text-sm font-bold text-orange-700 dark:text-orange-400 uppercase mb-2">Keputusan Pimpinan</p>
+                    <p className="text-4xl font-black text-orange-900 dark:text-orange-300 mb-2">✅ DISETUJUI</p>
+                    <p className="text-orange-700 dark:text-orange-400">Proyek memenuhi semua syarat dan siap dipublikasikan</p>
+                  </motion.div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                      <p className="font-bold text-gray-900 dark:text-white mb-3">📋 Checklist Approval</p>
+                      <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>✅ Proposal lengkap & sesuai</li>
+                        <li>✅ Inspeksi lapangan valid</li>
+                        <li>✅ Kelayakan finansial terjamin</li>
+                        <li>✅ Transparansi terpenuhi</li>
+                        <li>✅ Risiko minimal</li>
+                      </ul>
                     </div>
+
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                      <p className="font-bold text-gray-900 dark:text-white mb-3">🎯 Action Items</p>
+                      <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                        <li>→ Publikasi ke portal publik</li>
+                        <li>→ Notifikasi ke Wakif</li>
+                        <li>→ Buka penggalangan dana</li>
+                        <li>→ Setup vendor & timeline</li>
+                        <li>→ Monitor eksekusi proyek</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border-2 border-emerald-200 dark:border-emerald-800 rounded-xl">
+                    <p className="font-bold text-emerald-900 dark:text-emerald-400 mb-2">✅ Rekomendasi Approval</p>
+                    <p className="text-sm text-emerald-800 dark:text-emerald-300">
+                      Semua indikator menunjukkan proyek ini layak untuk dipublikasikan dan penggalangan dana. Transparansi, legalitas, dan kelayakan finansial telah terverifikasi oleh semua stakeholder.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {state.currentScreen === "publikasi-portal" && (
+              <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-8">
+                <h2 className="text-2xl font-black text-gray-900 dark:text-white mb-6">🌐 Publikasi ke Portal Publik</h2>
+                <div className="space-y-6">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border-2 border-green-200 dark:border-green-800 rounded-xl text-center"
+                  >
+                    <p className="text-6xl mb-3">🎉</p>
+                    <p className="text-2xl font-black text-green-900 dark:text-green-300">LIVE DI PORTAL!</p>
+                    <p className="text-green-700 dark:text-green-400 mt-2">Proyek telah dipublikasikan dan bisa dilihat oleh semua Wakif</p>
+                  </motion.div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl text-center">
+                      <p className="text-4xl font-black text-blue-600 dark:text-blue-400">1.2M</p>
+                      <p className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase mt-2">Target Dana</p>
+                      <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">Rp 1.2 Miliar</p>
+                    </div>
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-800 rounded-xl text-center">
+                      <p className="text-4xl font-black text-purple-600 dark:text-purple-400">500m²</p>
+                      <p className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase mt-2">Luas Bangunan</p>
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">Masjid Modern</p>
+                    </div>
+                    <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl text-center">
+                      <p className="text-4xl font-black text-amber-600 dark:text-amber-400">6M</p>
+                      <p className="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase mt-2">Timeline</p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">6 Bulan Konstruksi</p>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+                    <p className="font-bold text-gray-900 dark:text-white mb-3">📢 Status Publikasi</p>
+                    <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                      <li>✅ Halaman proyek: LIVE</li>
+                      <li>✅ Foto & detail: Terlihat</li>
+                      <li>✅ Target penggalangan: Terlihat</li>
+                      <li>✅ Notifikasi Wakif: Dikirim</li>
+                      <li>✅ Social media: Posted</li>
+                    </ul>
                   </div>
                 </div>
               </div>
