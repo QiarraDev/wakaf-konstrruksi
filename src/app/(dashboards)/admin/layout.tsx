@@ -25,6 +25,26 @@ const sidebarItems = [
     "name": "Edukasi LMS",
     "href": "/admin/lms",
     "icon": "📚"
+  },
+  {
+    "name": "Edit Proposal (Manual)",
+    "href": "/admin/proposal",
+    "icon": "📝"
+  },
+  {
+    "name": "Edit RAB (Manual)",
+    "href": "/admin/rab",
+    "icon": "💰"
+  },
+  {
+    "name": "Edit Desain (Manual)",
+    "href": "/admin/desain",
+    "icon": "📐"
+  },
+  {
+    "name": "Edit Assessment (Manual)",
+    "href": "/admin/assessment",
+    "icon": "🔍"
   }
 ];
 
