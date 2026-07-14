@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const INITIAL_PROPOSALS = [
@@ -25,6 +25,21 @@ const INITIAL_PROPOSALS = [
 
 export default function AdminKurasiPage() {
   const [proposals, setProposals] = useState(INITIAL_PROPOSALS);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('simulated_proposal');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setProposals(prev => {
+          if (!prev.find(p => p.id === parsed.id)) {
+            return [parsed, ...prev];
+          }
+          return prev;
+        });
+      } catch (e) {}
+    }
+  }, []);
   const [selectedProject, setSelectedProject] = useState<typeof INITIAL_PROPOSALS[0] | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -46,9 +61,18 @@ export default function AdminKurasiPage() {
   };
 
   const handleForwardToSuperAdmin = (project: typeof INITIAL_PROPOSALS[0]) => {
-    setProposals(prev => prev.map(p => p.id === project.id ? { ...p, status: "Menunggu Approval Pimpinan" } : p));
+    const updated = { ...project, status: "Menunggu Approval Pimpinan" };
+    setProposals(prev => prev.map(p => p.id === project.id ? updated : p));
     setSelectedProject(prev => prev ? { ...prev, status: "Menunggu Approval Pimpinan" } : null);
-    showToast(`✅ Proyek ${project.id} telah diteruskan ke Super Admin untuk Final Approval.`);
+    // Simpan ke localStorage agar Super Admin bisa melihat notifikasi
+    const existing = JSON.parse(localStorage.getItem('superadmin_queue') || '[]');
+    if (!existing.find((p: any) => p.id === project.id)) {
+      localStorage.setItem('superadmin_queue', JSON.stringify([
+        { ...updated, validatorName: 'Ahmad Fauzi', validatorScore: 92, summary: 'Validator Ahmad Fauzi telah menyelesaikan survei lapangan. Legalitas AIW terverifikasi, lahan bersih dari sengketa. Proyek dinilai layak dibangun.' },
+        ...existing
+      ]));
+    }
+    showToast(`✅ Proyek ${project.id} telah diteruskan ke Super Admin. Notifikasi terkirim.`);
   };
 
   const STATUS_STYLES: Record<string, string> = {
@@ -146,18 +170,51 @@ export default function AdminKurasiPage() {
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-800" onClick={e => e.stopPropagation()}>
               <div className="p-5 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex justify-between items-center">
                 <div>
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white">Tindakan Kurasi (Admin)</h3>
-                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">{selectedProject.name} ({selectedProject.id})</p>
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white">Detail & Tindakan Kurasi</h3>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">{selectedProject.name} · <span className="font-bold text-primary">{selectedProject.id}</span></p>
                 </div>
                 <button onClick={() => setSelectedProject(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl leading-none">&times;</button>
               </div>
 
-              <div className="p-6 space-y-6">
+              <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
+                {/* ===== RINGKASAN PROPOSAL (selalu tampil) ===== */}
+                <div>
+                  <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">📄 Ringkasan Isi Proposal</h4>
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-700 text-sm">
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">Nama Proyek</span>
+                      <span className="font-bold text-gray-900 dark:text-white text-right max-w-[60%]">{selectedProject.name}</span>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">Kategori</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{selectedProject.cat}</span>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">Wilayah</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{selectedProject.region}</span>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">PIC Pengelola</span>
+                      <span className="font-bold text-gray-900 dark:text-white">{selectedProject.pic}</span>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">Estimasi Dana (RAB)</span>
+                      <span className="font-bold text-primary text-base">{selectedProject.dana}</span>
+                    </div>
+                    <div className="flex justify-between p-3">
+                      <span className="text-gray-500 dark:text-gray-400">Status</span>
+                      <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${STATUS_STYLES[selectedProject.status] || ''}`}>{selectedProject.status}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ===== AKSI BERDASARKAN STATUS ===== */}
                 {selectedProject.status === "Menunggu Kurasi" && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 border-t border-gray-100 dark:border-gray-800 pt-5">
+                    <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">🚀 Tindakan Admin</h4>
                     <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl">
                       <p className="text-amber-800 dark:text-amber-400 text-sm font-medium">
-                        Proposal baru dari Nazhir. Tugaskan Validator Lapangan untuk survei fisik dan verifikasi dokumen di lokasi.
+                        Proposal sudah Anda telaah. Tugaskan Validator Lapangan untuk melakukan survei fisik dan verifikasi dokumen di lokasi.
                       </p>
                     </div>
                     <div>
@@ -174,10 +231,10 @@ export default function AdminKurasiPage() {
                 )}
 
                 {selectedProject.status === "Tugas Di-dispatch" && (
-                  <div className="text-center py-8">
+                  <div className="border-t border-gray-100 dark:border-gray-800 pt-5 text-center py-8">
                     <div className="text-6xl mb-4">⏳</div>
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Menunggu Laporan Lapangan</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto mb-6">Tugas inspeksi telah dikirim. Validator sedang mengisi form laporan dari lapangan.</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto mb-6">Tugas inspeksi telah dikirim ke Validator. Validator sedang melakukan survei di lapangan.</p>
                     <button onClick={() => handleTerimaLaporan(selectedProject)} className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-6 py-2.5 rounded-xl font-bold hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors">
                       [Simulasi] Terima Laporan Validator
                     </button>
@@ -185,7 +242,8 @@ export default function AdminKurasiPage() {
                 )}
 
                 {selectedProject.status === "Inspeksi Selesai" && (
-                  <div className="space-y-4">
+                  <div className="space-y-4 border-t border-gray-100 dark:border-gray-800 pt-5">
+                    <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">📋 Hasil Inspeksi Validator</h4>
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-xl flex items-start gap-3">
                       <span className="text-2xl">📋</span>
                       <div>
@@ -193,8 +251,17 @@ export default function AdminKurasiPage() {
                         <p className="text-sm text-blue-800 dark:text-blue-300 mt-1">Validator Ahmad telah mengunggah bukti survei (5 foto terlampir, legalitas AIW diverifikasi). Proyek dinilai layak dibangun.</p>
                       </div>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Proyek Telah Tayang!</h3>
-                    <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm mx-auto">Proyek ini sekarang sudah tampil di Dashboard Wakif dan siap menerima dana crowdfunding.</p>
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 space-y-2 text-sm">
+                      <div className="flex justify-between"><span className="text-gray-500">Validator</span><span className="font-bold">Ahmad Fauzi</span></div>
+                      <div className="flex justify-between"><span className="text-gray-500">Skor Inspeksi</span><span className="font-bold text-emerald-600">92 / 100 ✅</span></div>
+                      <div className="flex justify-between"><span className="text-gray-500">Jumlah Foto</span><span className="font-bold">5 Foto Bukti</span></div>
+                    </div>
+                    <button
+                      onClick={() => handleForwardToSuperAdmin(selectedProject)}
+                      className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                      👑 Teruskan ke Super Admin (Final Approval)
+                    </button>
                   </div>
                 )}
               </div>

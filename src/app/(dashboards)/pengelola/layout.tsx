@@ -7,16 +7,6 @@ const sidebarItems = [
     "icon": "📝"
   },
   {
-    "name": "Penyusunan RAB",
-    "href": "/pengelola/rab",
-    "icon": "💰"
-  },
-  {
-    "name": "Arsitek & Desain",
-    "href": "/pengelola/desain",
-    "icon": "📐"
-  },
-  {
     "name": "Brief Assessment",
     "href": "/pengelola/assessment",
     "icon": "🔍"

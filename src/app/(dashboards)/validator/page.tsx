@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -53,6 +53,66 @@ export default function ValidatorDashboard() {
   const [vendorStatuses, setVendorStatuses] = useState<{[id: string]: string}>({});
   const [inspectNote, setInspectNote] = useState("");
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [opiniText, setOpiniText] = useState("Lokasi tanah sudah bersih dan siap bangun. Masyarakat sekitar sangat mendukung. Dokumen AIW asli sudah saya cek dan fotokopi diamankan.");
+  const [dispatchedProposal, setDispatchedProposal] = useState<any>(null);
+  const surveyPhotoRef = useRef<HTMLInputElement>(null);
+  const [surveyPhotos, setSurveyPhotos] = useState<{name: string; url: string}[]>([]);
+
+  // --- Selfie / Absensi Wajah ---
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [selfieUrl, setSelfieUrl] = useState<string | null>(null);
+  const [cameraOn, setCameraOn] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      streamRef.current = stream;
+      if (videoRef.current) videoRef.current.srcObject = stream;
+      setCameraOn(true);
+      setCameraError(null);
+    } catch (e) {
+      setCameraError('Kamera tidak dapat diakses. Pastikan izin kamera sudah diberikan di browser.');
+    }
+  };
+
+  const stopCamera = () => {
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
+    setCameraOn(false);
+  };
+
+  const captureSelfie = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    const ctx = canvasRef.current.getContext('2d');
+    canvasRef.current.width = videoRef.current.videoWidth;
+    canvasRef.current.height = videoRef.current.videoHeight;
+    ctx?.drawImage(videoRef.current, 0, 0);
+    const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.85);
+    setSelfieUrl(dataUrl);
+    stopCamera();
+  };
+
+  const resetSelfie = () => {
+    setSelfieUrl(null);
+    startCamera();
+  };
+
+  useEffect(() => {
+    // Baca proposal yang di-dispatch Admin ke Validator
+    const saved = localStorage.getItem('simulated_proposal');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setDispatchedProposal(parsed);
+      } catch (e) {}
+    }
+    // Cek apakah laporan sudah pernah dikirim
+    const reportSent = localStorage.getItem('validator_report_sent');
+    if (reportSent === '1') setSurveyStatus('Selesai');
+  }, []);
 
   const projects = ["Masjid Jami' An-Nur", "Pesantren Tahfidz Al-Ikhlas"];
 
@@ -144,7 +204,7 @@ export default function ValidatorDashboard() {
         {[
           { id: "proyek", label: "🏗️ Status Proyek" },
           { id: "vendor", label: `🔍 Validasi Vendor${pendingVendors.length > 0 ? ` (${pendingVendors.length})` : ""}` },
-          { id: "kurasi", label: `📝 Inspeksi Proyek Baru ${surveyStatus === "Pending" ? "(1)" : ""}` },
+          { id: "kurasi", label: `📝 Inspeksi Proposal${surveyStatus === "Pending" && dispatchedProposal ? " 🔴" : ""}` },
         ].map(tab => (
           <button
             key={tab.id}
@@ -367,42 +427,53 @@ export default function ValidatorDashboard() {
       {/* Tab Content: Kurasi Proyek Baru */}
       {activeTab === "kurasi" && (
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-          <div className="card p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
-            <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
-              ℹ️ <strong>Tugas Inspeksi Baru:</strong> Admin telah mengirimkan tugas untuk mengecek kelayakan lokasi proyek baru.
-            </p>
-          </div>
-
-          <div className="card p-6">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <h3 className="text-lg font-black text-gray-900 dark:text-white">Pembangunan Masjid Jami' An-Nur (Proposal Baru)</h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">📍 Jawa Barat · PIC: Budi Santoso</p>
+          {!dispatchedProposal && surveyStatus === 'Pending' ? (
+            <div className="card p-12 text-center">
+              <div className="text-5xl mb-3">⏳</div>
+              <h3 className="font-bold text-gray-700 dark:text-gray-300">Belum Ada Tugas Inspeksi</h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">Admin belum men-dispatch proposal apapun ke Anda. Tunggu pemberitahuan dari Admin.</p>
+            </div>
+          ) : (
+            <>
+              <div className="card p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium">
+                  ℹ️ <strong>Tugas Inspeksi dari Admin:</strong> Lakukan kroscek fisik lokasi dan verifikasi kelayakan proposal berikut.
+                </p>
               </div>
-              <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${
-                surveyStatus === "Pending" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800" :
-                "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
-              }`}>
-                {surveyStatus === "Pending" ? "⏳ Menunggu Survei" : "✅ Selesai Survei"}
-              </span>
-            </div>
-            
-            <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-sm space-y-2 mb-4">
-              <p><strong>Kategori:</strong> Masjid / Mushola</p>
-              <p><strong>Dana Dibutuhkan:</strong> Rp 1.200.000.000</p>
-              <p><strong>Catatan Admin:</strong> "Tolong pastikan lahan sudah diwakafkan (cek AIW) dan tidak dalam sengketa."</p>
-            </div>
 
-            {surveyStatus === "Pending" ? (
-              <button onClick={() => setIsSurveyModalOpen(true)} className="btn-primary w-full sm:w-auto">
-                Mulai Inspeksi Lapangan
-              </button>
-            ) : (
-              <button disabled className="bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-4 py-2.5 rounded-xl font-bold cursor-not-allowed w-full sm:w-auto">
-                Laporan Telah Dikirim ke Admin
-              </button>
-            )}
-          </div>
+              <div className="card p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white">{dispatchedProposal?.name || "Pembangunan Masjid Jami' An-Nur"}</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">📍 {dispatchedProposal?.region || 'Jawa Barat'} · PIC: {dispatchedProposal?.pic || 'Budi Santoso'}</p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-lg text-xs font-bold border ${
+                    surveyStatus === "Pending" ? "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800" :
+                    "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800"
+                  }`}>
+                    {surveyStatus === "Pending" ? "⏳ Menunggu Survei" : "✅ Laporan Terkirim"}
+                  </span>
+                </div>
+                
+                <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-sm space-y-2 mb-4">
+                  <p><strong>Kategori:</strong> {dispatchedProposal?.cat || 'Masjid / Mushola'}</p>
+                  <p><strong>Estimasi Dana RAB:</strong> {dispatchedProposal?.dana || 'Rp 1.200.000.000'}</p>
+                  <p><strong>Catatan Admin:</strong> "Pastikan lahan sudah diwakafkan (cek AIW) dan tidak dalam sengketa."</p>
+                </div>
+
+                {surveyStatus === "Pending" ? (
+                  <button onClick={() => setIsSurveyModalOpen(true)} className="btn-primary w-full sm:w-auto">
+                    🔍 Mulai Inspeksi Lapangan
+                  </button>
+                ) : (
+                  <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 p-4 rounded-xl">
+                    <p className="font-bold text-emerald-800 dark:text-emerald-400">✅ Laporan inspeksi telah dikirim ke Admin.</p>
+                    <p className="text-sm text-emerald-700 dark:text-emerald-300 mt-1">Admin akan meneruskan ke Super Admin untuk Final Approval.</p>
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </motion.div>
       )}
 
@@ -412,17 +483,113 @@ export default function ValidatorDashboard() {
           <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
               <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 flex justify-between items-center">
-                <h2 className="font-black text-white">Form Kelayakan Proyek</h2>
-                <button onClick={() => setIsSurveyModalOpen(false)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <div>
+                  <h2 className="font-black text-white">Form Inspeksi Lapangan</h2>
+                  <p className="text-gray-400 text-xs mt-0.5">Lengkapi semua bagian termasuk absensi wajah sebelum mengirim</p>
+                </div>
+                <button onClick={() => { setIsSurveyModalOpen(false); stopCamera(); }} className="text-gray-400 hover:text-white text-2xl">&times;</button>
               </div>
 
               <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+
+                {/* ===== ABSENSI WAJAH ===== */}
+                <div className="border border-purple-200 dark:border-purple-800 rounded-xl overflow-hidden">
+                  <div className="bg-purple-50 dark:bg-purple-900/20 px-4 py-3 flex items-center gap-2">
+                    <span className="text-xl">🤳</span>
+                    <div>
+                      <p className="font-black text-purple-900 dark:text-purple-300 text-sm">Absensi Wajah Real-Time (Wajib)</p>
+                      <p className="text-xs text-purple-700 dark:text-purple-400">Selfie sebagai bukti kehadiran fisik Validator di lokasi</p>
+                    </div>
+                    {selfieUrl && <span className="ml-auto text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">✅ Terverifikasi</span>}
+                  </div>
+
+                  <div className="p-4">
+                    {!selfieUrl ? (
+                      <div className="space-y-3">
+                        {/* Camera Preview */}
+                        <div className="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                          {cameraOn ? (
+                            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-center text-white p-6">
+                              <div className="text-5xl mb-3">📷</div>
+                              <p className="text-sm font-bold">{cameraError || 'Kamera belum aktif'}</p>
+                              {cameraError && <p className="text-xs text-gray-400 mt-1">{cameraError}</p>}
+                            </div>
+                          )}
+                          {cameraOn && (
+                            <div className="absolute inset-0 pointer-events-none">
+                              <div className="absolute inset-4 border-2 border-white/30 rounded-xl"></div>
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-40 border-2 border-purple-400 rounded-full opacity-60"></div>
+                            </div>
+                          )}
+                        </div>
+                        <canvas ref={canvasRef} className="hidden" />
+
+                        <div className="flex gap-2">
+                          {!cameraOn ? (
+                            <button onClick={startCamera} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                              📷 Aktifkan Kamera
+                            </button>
+                          ) : (
+                            <>
+                              <button onClick={stopCamera} className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                Batal
+                              </button>
+                              <button onClick={captureSelfie} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                                🤳 Ambil Foto Sekarang
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <img src={selfieUrl} alt="Selfie" className="w-full rounded-xl object-cover aspect-video" />
+                          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg font-bold">
+                            📍 {new Date().toLocaleString('id-ID')} · Validator Lapangan
+                          </div>
+                          <div className="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-lg font-bold">✅ Verified</div>
+                        </div>
+                        <button onClick={resetSelfie} className="w-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          🔄 Ulang Foto
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl flex items-start gap-3">
                   <span className="text-2xl">📷</span>
                   <div className="text-sm">
-                    <p className="font-bold text-amber-900 dark:text-amber-400">Bukti 5 Foto Wajib</p>
-                    <p className="text-amber-800 dark:text-amber-300 mt-1">Anda harus mengambil foto tapak batas tanah, jalan akses, plang tanah, dan form serah terima. (Simulasi: 5 foto telah disiapkan otomatis).</p>
+                    <p className="font-bold text-amber-900 dark:text-amber-400">Upload Foto Bukti Lapangan (min. 3 foto)</p>
+                    <p className="text-amber-800 dark:text-amber-300 mt-1">Foto tapak tanah, batas lahan, jalan akses, dan dokumen AIW.</p>
                   </div>
+                </div>
+
+                {/* Upload Foto */}
+                <div>
+                  <div
+                    onClick={() => surveyPhotoRef.current?.click()}
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6 text-center cursor-pointer hover:border-primary hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors"
+                  >
+                    <div className="text-3xl mb-1">📸</div>
+                    <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Klik untuk upload foto bukti</p>
+                    <input ref={surveyPhotoRef} type="file" accept="image/*" className="hidden" onChange={e => {
+                      if (e.target.files?.length) {
+                        const file = e.target.files[0];
+                        setSurveyPhotos(prev => [...prev, { name: file.name, url: URL.createObjectURL(file) }]);
+                      }
+                    }} />
+                  </div>
+                  {surveyPhotos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap mt-3">
+                      {surveyPhotos.map((p, i) => (
+                        <img key={i} src={p.url} alt={p.name} className="w-20 h-20 object-cover rounded-lg border border-gray-200" />
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
@@ -444,30 +611,52 @@ export default function ValidatorDashboard() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Opini Validator</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Opini & Rekomendasi Validator</label>
                   <textarea
                     rows={3}
-                    defaultValue="Lokasi tanah sudah bersih dan siap bangun. Masyarakat sekitar sangat mendukung. Dokumen AIW asli sudah saya cek dan fotokopi diamankan."
+                    value={opiniText}
+                    onChange={e => setOpiniText(e.target.value)}
                     className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white"
+                    placeholder="Tulis hasil pengamatan lapangan, kondisi lahan, dan rekomendasi..."
                   />
                 </div>
               </div>
 
-              <div className="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                <button onClick={() => setIsSurveyModalOpen(false)} className="px-5 py-2.5 font-bold text-gray-500 text-sm">
-                  Batal
-                </button>
-                <button
-                  onClick={() => {
-                    setSurveyStatus("Selesai");
-                    setIsSurveyModalOpen(false);
-                    setSuccessMsg("Laporan survei proyek baru telah dikirim ke Admin!");
-                    setTimeout(() => setSuccessMsg(null), 4000);
-                  }}
-                  className="btn-primary text-sm shadow-lg shadow-primary/20"
-                >
-                  🚀 Kirim Laporan ke Admin
-                </button>
+              <div className="px-6 py-4 flex flex-col gap-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                {!selfieUrl && (
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-bold bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+                    <span>⚠️</span>
+                    <span>Absensi wajah belum dilakukan. Aktifkan kamera dan ambil selfie terlebih dahulu.</span>
+                  </div>
+                )}
+                <div className="flex justify-end gap-3">
+                  <button onClick={() => { setIsSurveyModalOpen(false); stopCamera(); }} className="px-5 py-2.5 font-bold text-gray-500 text-sm">
+                    Batal
+                  </button>
+                  <button
+                    disabled={!selfieUrl}
+                    onClick={() => {
+                      // Kirim laporan ke antrian Super Admin
+                      const proposal = dispatchedProposal || { id: 'PRJ-004', name: "Masjid Jami' An-Nur", cat: 'Masjid', dana: 'Rp 1.2M', region: 'Jawa Barat', pic: 'Budi Santoso' };
+                      const existing = JSON.parse(localStorage.getItem('superadmin_queue') || '[]');
+                      if (!existing.find((p: any) => p.id === proposal.id)) {
+                        localStorage.setItem('superadmin_queue', JSON.stringify([
+                          { ...proposal, status: 'Menunggu Approval Pimpinan', validatorName: 'Ahmad Fauzi', validatorScore: 92, summary: opiniText },
+                          ...existing
+                        ]));
+                      }
+                      localStorage.setItem('validator_report_sent', '1');
+                      setSurveyStatus('Selesai');
+                      setIsSurveyModalOpen(false);
+                      stopCamera();
+                      setSuccessMsg('✅ Absensi wajah & laporan inspeksi berhasil dikirim ke Admin!');
+                      setTimeout(() => setSuccessMsg(null), 5000);
+                    }}
+                    className="btn-primary text-sm shadow-lg shadow-primary/20 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    🚀 Kirim Laporan Inspeksi
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>

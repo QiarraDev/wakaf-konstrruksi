@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotification } from "@/context/NotificationContext";
 import { ReportDetailPanel } from "@/components/ReportDetailPanel";
@@ -20,13 +20,33 @@ const PENDING_PROJECTS = [
 ];
 
 export default function SuperAdminApprovalPage() {
-  const [showLoginNotif, setShowLoginNotif] = useState(true);
+  const [showLoginNotif, setShowLoginNotif] = useState(false);
   const [projects, setProjects] = useState(PENDING_PROJECTS);
   const [selectedProject, setSelectedProject] = useState<typeof PENDING_PROJECTS[0] | null>(null);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<"approval" | "reports">("approval");
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const { notifications, dismissNotification, markAsRead } = useNotification();
+
+  // Baca antrian Super Admin dari localStorage (dikirim oleh Admin Kurasi)
+  useEffect(() => {
+    const saved = localStorage.getItem('superadmin_queue');
+    if (saved) {
+      try {
+        const queue: any[] = JSON.parse(saved);
+        if (queue.length > 0) {
+          setProjects(prev => {
+            const merged = [...prev];
+            queue.forEach(p => {
+              if (!merged.find(m => m.id === p.id)) merged.unshift(p);
+            });
+            return merged;
+          });
+          setShowLoginNotif(true);
+        }
+      } catch (e) {}
+    }
+  }, []);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -107,19 +127,23 @@ export default function SuperAdminApprovalPage() {
               <div className="p-6 space-y-4">
                 <div className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-xl">
                   <p className="text-orange-900 dark:text-orange-300 font-black text-lg">
-                    {pendingCount + pendingReports.length} Item Menunggu Perhatian Anda
+                    {pendingCount + pendingReports.length} Item Menunggu Persetujuan Anda
                   </p>
                   <p className="text-orange-700 dark:text-orange-400 text-sm mt-1">
-                    Admin Operasional telah selesai melakukan kurasi dan pengiriman tim Validator Lapangan. Laporan telah diterima dan siap untuk ditelaah oleh Pimpinan.
+                    Admin Operasional telah menyelesaikan kurasi dan proses validator lapangan. Proposal siap untuk keputusan final Pimpinan.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-xl">📋</div>
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white text-sm">Renovasi Pesantren Al-Huda</p>
-                    <p className="text-gray-500 dark:text-gray-400 text-xs">Skor Inspeksi Validator: 95/100 ✅</p>
-                  </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {projects.filter(p => p.status === 'Menunggu Approval Pimpinan').map((p, i) => (
+                    <div key={i} className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700">
+                      <div className="w-9 h-9 rounded-full bg-orange-100 dark:bg-orange-900/40 flex items-center justify-center text-lg flex-shrink-0">📋</div>
+                      <div>
+                        <p className="font-bold text-gray-900 dark:text-white text-sm">{p.name}</p>
+                        <p className="text-gray-500 dark:text-gray-400 text-xs">{p.region} · {p.dana}</p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <motion.button
