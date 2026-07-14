@@ -2,26 +2,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const INITIAL_PROPOSALS = [
-  {
-    id: "PRJ-004",
-    name: "Pembangunan Masjid Jami' An-Nur (Proposal Baru)",
-    cat: "Masjid",
-    dana: "Rp 1.2M",
-    status: "Menunggu Kurasi",
-    region: "Jawa Barat",
-    pic: "Budi Santoso",
-  },
-  {
-    id: "PRJ-002",
-    name: "Renovasi Pesantren Al-Huda",
-    cat: "Pesantren",
-    dana: "Rp 500Jt",
-    status: "Inspeksi Selesai",
-    region: "Jawa Tengah",
-    pic: "Kyai Hasyim",
-  },
-];
+export type ProposalType = {
+  id: string;
+  name: string;
+  cat: string;
+  dana: string;
+  status: string;
+  region: string;
+  pic: string;
+};
+
+const INITIAL_PROPOSALS: ProposalType[] = [];
 
 export default function AdminKurasiPage() {
   const [proposals, setProposals] = useState(INITIAL_PROPOSALS);

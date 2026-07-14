@@ -3,46 +3,22 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-const VENDOR_LIST = [
-  {
-    id: "VND-001",
-    name: "PT. Maju Jaya Konstruksi",
-    type: "PT",
-    region: "Jawa Barat",
-    status: "Perlu Verifikasi Lapangan",
-    pic: "Budi Santoso",
-    phone: "081234567890",
-    address: "Jl. Sudirman No.45, Bandung",
-    docs: ["NIB_PT_Maju_Jaya.pdf", "SIUJK_2024.pdf", "NPWP.pdf"],
-    kycScore: 85,
-  },
-  {
-    id: "VND-002",
-    name: "CV. Bangun Bersama",
-    type: "CV",
-    region: "Jawa Tengah",
-    status: "Perlu Verifikasi Lapangan",
-    pic: "Ahmad Fauzi",
-    phone: "082345678901",
-    address: "Jl. Pemuda No.12, Semarang",
-    docs: ["NIB_CV_Bangun.pdf", "KTP_Direktur.jpg"],
-    kycScore: 60,
-  },
-  {
-    id: "VND-003",
-    name: "Kelompok Swakelola An-Nur",
-    type: "Swakelola",
-    region: "Jawa Timur",
-    status: "Terverifikasi",
-    pic: "Pak Hasyim",
-    phone: "083456789012",
-    address: "Desa Kebonsari, Jombang",
-    docs: ["NIB_Swakelola.pdf"],
-    kycScore: 92,
-  },
-];
+type VendorType = {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  status: string;
+  pic: string;
+  phone: string;
+  address: string;
+  docs: string[];
+  kycScore: number;
+};
 
+const VENDOR_LIST: VendorType[] = [];
 export default function ValidatorDashboard() {
+  const [vendors, setVendors] = useState<typeof VENDOR_LIST>(VENDOR_LIST);
   const [selectedProject, setSelectedProject] = useState("Masjid Jami' An-Nur");
   const [activeTab, setActiveTab] = useState<"proyek" | "vendor" | "kurasi">("proyek");
   const [selectedVendor, setSelectedVendor] = useState<typeof VENDOR_LIST[0] | null>(null);
@@ -114,21 +90,16 @@ export default function ValidatorDashboard() {
     if (reportSent === '1') setSurveyStatus('Selesai');
   }, []);
 
-  const projects = ["Masjid Jami' An-Nur", "Pesantren Tahfidz Al-Ikhlas"];
+  const projects: string[] = [];
 
   const stats = [
-    { label: "Proyek Dipantau", value: "2", icon: "🏗️", color: "text-primary" },
-    { label: "Laporan Bulan Ini", value: "8", icon: "📸", color: "text-blue-600" },
-    { label: "Inspeksi Menunggu", value: "1", icon: "⏳", color: "text-orange-500" },
-    { label: "Skor Kepatuhan", value: "94%", icon: "✅", color: "text-emerald-600" },
+    { label: "Proyek Dipantau", value: "0", icon: "🏗️", color: "text-primary" },
+    { label: "Laporan Bulan Ini", value: "0", icon: "📸", color: "text-blue-600" },
+    { label: "Inspeksi Menunggu", value: dispatchedProposal && surveyStatus === 'Pending' ? "1" : "0", icon: "⏳", color: "text-orange-500" },
+    { label: "Skor Kepatuhan", value: "0%", icon: "✅", color: "text-emerald-600" },
   ];
 
-  const recentActivity = [
-    { time: "09:15 WIB", action: "Laporan progres 60% Masjid An-Nur dikirim", status: "success" },
-    { time: "Kemarin, 14:30", action: "Checklist inspeksi lantai 2 diselesaikan", status: "success" },
-    { time: "Kemarin, 11:00", action: "Foto dokumentasi 12 gambar diunggah", status: "success" },
-    { time: "2 Hari lalu", action: "Laporan revisi RAB diterima dari Vendor", status: "warning" },
-  ];
+  const recentActivity: any[] = [];
 
   const handleVerifVendor = (id: string, action: "setujui" | "tolak") => {
     const label = action === "setujui" ? "Terverifikasi Lapangan" : "Ditolak";
@@ -138,8 +109,14 @@ export default function ValidatorDashboard() {
       : `❌ Vendor ${selectedVendor?.name} ditolak. Notifikasi dikirim ke Admin.`);
     setSelectedVendor(null);
     setInspectNote("");
+    setVendorDocs([]);
+    setSelfieUrl(null);
+    stopCamera();
     setTimeout(() => setSuccessMsg(null), 4000);
   };
+
+  const [vendorDocs, setVendorDocs] = useState<{name: string; url: string}[]>([]);
+  const vendorDocRef = useRef<HTMLInputElement>(null);
 
   const pendingVendors = VENDOR_LIST.filter(v =>
     (vendorStatuses[v.id] || v.status) === "Perlu Verifikasi Lapangan"
@@ -291,7 +268,7 @@ export default function ValidatorDashboard() {
           </div>
 
           <div className="space-y-4">
-            {VENDOR_LIST.map(vendor => {
+            {vendors.map(vendor => {
               const currentStatus = vendorStatuses[vendor.id] || vendor.status;
               const isVerified = currentStatus === "Terverifikasi" || currentStatus === "Terverifikasi Lapangan";
               const isRejected = currentStatus === "Ditolak";
@@ -345,8 +322,11 @@ export default function ValidatorDashboard() {
               className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl border border-gray-100 dark:border-gray-800 overflow-hidden"
             >
               <div className="bg-gradient-to-r from-gray-900 to-gray-800 px-6 py-4 flex justify-between items-center">
-                <h2 className="font-black text-white">Form Inspeksi Vendor Lapangan</h2>
-                <button onClick={() => setSelectedVendor(null)} className="text-gray-400 hover:text-white text-2xl">&times;</button>
+                <div>
+                  <h2 className="font-black text-white">Form Inspeksi Vendor Lapangan</h2>
+                  <p className="text-gray-400 text-xs mt-0.5">Lengkapi absensi wajah dan unggah dokumen pendukung</p>
+                </div>
+                <button onClick={() => { setSelectedVendor(null); stopCamera(); setSelfieUrl(null); setVendorDocs([]); }} className="text-gray-400 hover:text-white text-2xl">&times;</button>
               </div>
 
               <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
@@ -363,6 +343,101 @@ export default function ValidatorDashboard() {
                     <span className="text-gray-500 dark:text-gray-400">Alamat</span>
                     <span className="font-semibold text-gray-900 dark:text-white">{selectedVendor.address}</span>
                   </div>
+                </div>
+
+                {/* ===== ABSENSI WAJAH ===== */}
+                <div className="border border-purple-200 dark:border-purple-800 rounded-xl overflow-hidden">
+                  <div className="bg-purple-50 dark:bg-purple-900/20 px-4 py-3 flex items-center gap-2">
+                    <span className="text-xl">🤳</span>
+                    <div>
+                      <p className="font-black text-purple-900 dark:text-purple-300 text-sm">Absensi Wajah Real-Time (Wajib)</p>
+                      <p className="text-xs text-purple-700 dark:text-purple-400">Selfie sebagai bukti kehadiran fisik Anda di kantor vendor</p>
+                    </div>
+                    {selfieUrl && <span className="ml-auto text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">✅ Terverifikasi</span>}
+                  </div>
+
+                  <div className="p-4">
+                    {!selfieUrl ? (
+                      <div className="space-y-3">
+                        {/* Camera Preview */}
+                        <div className="relative bg-black rounded-xl overflow-hidden aspect-video flex items-center justify-center">
+                          {cameraOn ? (
+                            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="text-center text-white p-6">
+                              <div className="text-5xl mb-3">📷</div>
+                              <p className="text-sm font-bold">{cameraError || 'Kamera belum aktif'}</p>
+                              {cameraError && <p className="text-xs text-gray-400 mt-1">{cameraError}</p>}
+                            </div>
+                          )}
+                          {cameraOn && (
+                            <div className="absolute inset-0 pointer-events-none">
+                              <div className="absolute inset-4 border-2 border-white/30 rounded-xl"></div>
+                              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-40 border-2 border-purple-400 rounded-full opacity-60"></div>
+                            </div>
+                          )}
+                        </div>
+                        <canvas ref={canvasRef} className="hidden" />
+
+                        <div className="flex gap-2">
+                          {!cameraOn ? (
+                            <button onClick={startCamera} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                              📷 Aktifkan Kamera
+                            </button>
+                          ) : (
+                            <>
+                              <button onClick={stopCamera} className="px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                Batal
+                              </button>
+                              <button onClick={captureSelfie} className="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+                                🤳 Ambil Foto Sekarang
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="relative">
+                          <img src={selfieUrl} alt="Selfie" className="w-full rounded-xl object-cover aspect-video" />
+                          <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded-lg font-bold">
+                            📍 {new Date().toLocaleString('id-ID')} · Validator Lapangan
+                          </div>
+                          <div className="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-lg font-bold">✅ Verified</div>
+                        </div>
+                        <button onClick={resetSelfie} className="w-full border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 font-bold py-2 rounded-xl text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                          🔄 Ulang Foto
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Upload Dokumen Penunjang */}
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Upload Dokumen Fisik Tambahan (Jika Ada)</label>
+                  <div
+                    onClick={() => vendorDocRef.current?.click()}
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-primary hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-colors"
+                  >
+                    <div className="text-2xl mb-1">📁</div>
+                    <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Klik untuk upload dokumen / foto lapangan</p>
+                    <input ref={vendorDocRef} type="file" multiple className="hidden" onChange={e => {
+                      if (e.target.files?.length) {
+                        const files = Array.from(e.target.files).map(f => ({ name: f.name, url: URL.createObjectURL(f) }));
+                        setVendorDocs(prev => [...prev, ...files]);
+                      }
+                    }} />
+                  </div>
+                  {vendorDocs.length > 0 && (
+                    <div className="flex gap-2 flex-wrap mt-3">
+                      {vendorDocs.map((p, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <span className="text-sm truncate max-w-[150px]">{p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Docs Checklist */}
@@ -405,19 +480,29 @@ export default function ValidatorDashboard() {
                 </div>
               </div>
 
-              <div className="px-6 py-4 flex justify-end gap-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-                <button
-                  onClick={() => handleVerifVendor(selectedVendor.id, "tolak")}
-                  className="px-5 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm"
-                >
-                  ✕ Tolak & Beri Revisi
-                </button>
-                <button
-                  onClick={() => handleVerifVendor(selectedVendor.id, "setujui")}
-                  className="btn-primary text-sm"
-                >
-                  ✓ Setujui & Verifikasi
-                </button>
+              <div className="px-6 py-4 flex flex-col gap-3 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+                {!selfieUrl && (
+                  <div className="flex items-center gap-2 text-red-600 dark:text-red-400 text-xs font-bold bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg px-3 py-2">
+                    <span>⚠️</span>
+                    <span>Absensi wajah belum dilakukan. Aktifkan kamera dan ambil selfie terlebih dahulu.</span>
+                  </div>
+                )}
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => handleVerifVendor(selectedVendor.id, "tolak")}
+                    disabled={!selfieUrl}
+                    className="px-5 py-2.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800 font-bold rounded-xl hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ✕ Tolak & Beri Revisi
+                  </button>
+                  <button
+                    onClick={() => handleVerifVendor(selectedVendor.id, "setujui")}
+                    disabled={!selfieUrl}
+                    className="btn-primary text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    ✓ Setujui & Verifikasi
+                  </button>
+                </div>
               </div>
             </motion.div>
           </div>
@@ -637,7 +722,8 @@ export default function ValidatorDashboard() {
                     disabled={!selfieUrl}
                     onClick={() => {
                       // Kirim laporan ke antrian Super Admin
-                      const proposal = dispatchedProposal || { id: 'PRJ-004', name: "Masjid Jami' An-Nur", cat: 'Masjid', dana: 'Rp 1.2M', region: 'Jawa Barat', pic: 'Budi Santoso' };
+                      const proposal = dispatchedProposal;
+                      if (!proposal) return;
                       const existing = JSON.parse(localStorage.getItem('superadmin_queue') || '[]');
                       if (!existing.find((p: any) => p.id === proposal.id)) {
                         localStorage.setItem('superadmin_queue', JSON.stringify([

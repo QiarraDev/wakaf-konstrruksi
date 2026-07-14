@@ -4,20 +4,20 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNotification } from "@/context/NotificationContext";
 import { ReportDetailPanel } from "@/components/ReportDetailPanel";
 
-const PENDING_PROJECTS = [
-  {
-    id: "PRJ-002",
-    name: "Renovasi Pesantren Al-Huda",
-    cat: "Pesantren",
-    dana: "Rp 500Jt",
-    region: "Jawa Tengah",
-    pic: "Kyai Hasyim",
-    validatorName: "Ahmad Fauzi",
-    validatorScore: 95,
-    summary: "Validator Ahmad Fauzi telah menyelesaikan survei lapangan. Legalitas AIW terverifikasi, lahan bersih dari sengketa, akses jalan tersedia. 5 foto geotagging terlampir.",
-    status: "Menunggu Approval Pimpinan",
-  },
-];
+type PendingProjectType = {
+  id: string;
+  name: string;
+  cat: string;
+  dana: string;
+  region: string;
+  pic: string;
+  validatorName: string;
+  validatorScore: number;
+  summary: string;
+  status: string;
+};
+
+const PENDING_PROJECTS: PendingProjectType[] = [];
 
 export default function SuperAdminApprovalPage() {
   const [showLoginNotif, setShowLoginNotif] = useState(false);

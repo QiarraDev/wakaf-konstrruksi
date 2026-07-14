@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const stats = [
   { label: "Draft Proposal", value: "2", icon: "📝", color: "border-l-gray-400", iconBg: "bg-gray-50 dark:bg-gray-800" },
@@ -10,35 +10,46 @@ const stats = [
   { label: "Selesai", value: "3", icon: "✅", color: "border-l-primary", iconBg: "bg-emerald-50 dark:bg-emerald-900/30" },
 ];
 
-const projects = [
-  {
-    id: 1,
-    title: "Masjid Jami' An-Nur",
-    status: "konstruksi",
-    statusLabel: "Proses Konstruksi",
-    progress: 60,
-    vendor: "PT Bangun Bersama",
-    estimasiSelesai: "Oktober 2026",
-    budget: "Rp 1.2M",
-    lastUpdate: "2 jam lalu",
-    stage: "Pemasangan Atap Kubah",
-  },
-  {
-    id: 2,
-    title: "Pesantren Tahfidz Al-Ikhlas",
-    status: "review",
-    statusLabel: "Sedang Direview",
-    progress: 20,
-    vendor: "CV Karya Utama",
-    estimasiSelesai: "Januari 2027",
-    budget: "Rp 850 Jt",
-    lastUpdate: "5 hari lalu",
-    stage: "Pengecoran Struktur Bawah",
-  },
-];
+type ProjectType = {
+  id: number | string;
+  title: string;
+  status: string;
+  statusLabel: string;
+  progress: number;
+  vendor: string;
+  estimasiSelesai: string;
+  budget: string;
+  lastUpdate: string;
+  stage: string;
+};
+
+const INITIAL_PROJECTS: ProjectType[] = [];
 
 export default function PengelolaDashboard() {
   const [modal, setModal] = useState<string | null>(null);
+  const [projects, setProjects] = useState(INITIAL_PROJECTS);
+  const [selectedBlueprint, setSelectedBlueprint] = useState<string | null>("Denah Lantai 1");
+
+  useEffect(() => {
+    const saved = localStorage.getItem('simulated_proposal');
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setProjects([{
+          id: parsed.id,
+          title: parsed.name,
+          status: "review",
+          statusLabel: parsed.status || "Sedang Direview",
+          progress: 10,
+          vendor: "Belum Ditentukan",
+          estimasiSelesai: "Menunggu Approval",
+          budget: parsed.dana,
+          lastUpdate: "Baru saja",
+          stage: "Review Admin"
+        }]);
+      } catch(e) {}
+    }
+  }, []);
 
   return (
     <>
@@ -191,21 +202,37 @@ export default function PengelolaDashboard() {
           className="grid grid-cols-2 md:grid-cols-4 gap-4"
         >
           {[
-            { label: "Proposal", icon: "📋", href: "/pengelola/proposal", desc: "Buat & kelola" },
-            { label: "Desain & Blueprint", icon: "📐", href: "/pengelola/desain", desc: "Gambar teknis" },
-            { label: "RAB", icon: "💰", href: "/pengelola/rab", desc: "Anggaran biaya" },
-            { label: "Penilaian Teknis", icon: "🔍", href: "/pengelola/assessment", desc: "Laporan validator" },
-          ].map((item, i) => (
-            <Link key={i} href={item.href} className="card p-5 flex flex-col gap-3 group hover:-translate-y-1 transition-all">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
-                {item.icon}
-              </div>
-              <div>
-                <p className="font-bold text-gray-900 dark:text-white text-sm">{item.label}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
-              </div>
-            </Link>
-          ))}
+            { label: "Proposal", icon: "📋", href: "/pengelola/proposal", desc: "Buat & kelola", action: null },
+            { label: "Desain & Blueprint", icon: "📐", href: "#", desc: "Gambar teknis", action: "blueprint_1" },
+            { label: "RAB", icon: "💰", href: "#", desc: "Anggaran biaya", action: "rab_1" },
+            { label: "Penilaian Teknis", icon: "🔍", href: "/pengelola/assessment", desc: "Laporan validator", action: null },
+          ].map((item, i) => {
+            const content = (
+              <>
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                  {item.icon}
+                </div>
+                <div>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm">{item.label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{item.desc}</p>
+                </div>
+              </>
+            );
+
+            if (item.action) {
+              return (
+                <button key={i} onClick={() => setModal(item.action)} className="card p-5 flex flex-col gap-3 group hover:-translate-y-1 transition-all text-left">
+                  {content}
+                </button>
+              );
+            }
+
+            return (
+              <Link key={i} href={item.href} className="card p-5 flex flex-col gap-3 group hover:-translate-y-1 transition-all">
+                {content}
+              </Link>
+            );
+          })}
         </motion.div>
       </div>
 
@@ -227,18 +254,35 @@ export default function PengelolaDashboard() {
                   </div>
                   <button onClick={() => setModal(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-2xl leading-none">×</button>
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-800 rounded-xl h-64 flex items-center justify-center mb-4">
-                  <div className="text-center">
-                    <div className="text-5xl mb-3">📐</div>
-                    <p className="font-bold text-gray-600 dark:text-gray-400">Blueprint Teknis</p>
-                    <p className="text-sm text-gray-400">Skala 1:100 — Denah Lantai & Tampak</p>
-                  </div>
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-xl h-64 flex items-center justify-center mb-4 overflow-hidden relative border border-gray-200 dark:border-gray-700">
+                  {selectedBlueprint === "Denah Lantai 1" && (
+                    <img src="/images/blueprint_denah.png" alt="Denah Lantai 1" className="w-full h-full object-cover" />
+                  )}
+                  {selectedBlueprint === "Tampak Depan" && (
+                    <img src="/images/blueprint_tampak.png" alt="Tampak Depan" className="w-full h-full object-cover" />
+                  )}
+                  {selectedBlueprint === "Tampak Samping" && (
+                    <img src="/images/blueprint_samping.png" alt="Tampak Samping" className="w-full h-full object-cover" />
+                  )}
+                  {selectedBlueprint === "Potongan A-A" && (
+                    <img src="/images/blueprint_potongan.png" alt="Potongan A-A" className="w-full h-full object-cover" />
+                  )}
+                  {!selectedBlueprint && (
+                    <div className="text-center p-4 bg-gray-100 dark:bg-gray-800 absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="text-5xl mb-3">📐</div>
+                      <p className="font-bold text-gray-600 dark:text-gray-400">Pilih Blueprint</p>
+                    </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-5">
                   {["Denah Lantai 1", "Tampak Depan", "Tampak Samping", "Potongan A-A"].map((d, i) => (
-                    <div key={i} className="flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-sm font-medium text-gray-700 dark:text-gray-300 border border-gray-100 dark:border-gray-700">
+                    <button 
+                      key={i} 
+                      onClick={() => setSelectedBlueprint(d)}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold border transition-colors ${selectedBlueprint === d ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-primary/50 hover:text-primary'}`}
+                    >
                       <span>🗂️</span>{d}
-                    </div>
+                    </button>
                   ))}
                 </div>
                 <button className="w-full btn-primary">⬇️ Unduh Blueprint (PDF)</button>

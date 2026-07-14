@@ -142,6 +142,28 @@ export default function AuthPage() {
           ))}
         </div>
 
+        {/* Vendor Registration Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6, duration: 0.5 }}
+          className="mt-10 max-w-3xl mx-auto"
+        >
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 shadow-xl shadow-emerald-500/20 text-white relative overflow-hidden">
+            {/* Background Accent */}
+            <div className="absolute right-0 top-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+            
+            <div className="text-center sm:text-left relative z-10">
+              <h3 className="text-xl font-black mb-1">Tertarik Menjadi Mitra Vendor?</h3>
+              <p className="text-emerald-100 text-sm">Daftarkan perusahaan Anda atau kelompok swakelola untuk ikut serta dalam pembangunan proyek wakaf.</p>
+            </div>
+            
+            <Link href="/vendor-register" className="shrink-0 bg-white text-emerald-700 hover:bg-emerald-50 px-6 py-3 rounded-xl font-bold shadow-md transition-colors relative z-10">
+              📝 Daftar Sekarang
+            </Link>
+          </div>
+        </motion.div>
+
         {/* Footer */}
         <motion.p
           className="text-center text-gray-400 dark:text-white/30 text-sm mt-10"

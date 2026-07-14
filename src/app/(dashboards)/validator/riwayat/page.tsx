@@ -1,13 +1,17 @@
 "use client";
 import { useState } from "react";
 
-const reports = [
-  { id: "RPT-1042", date: "Hari ini, 09:15", project: "Masjid Jami' An-Nur", milestone: "60%", kondisi: "Baik", photos: 4, score: 94 },
-  { id: "RPT-1041", date: "Kemarin, 14:30", project: "Masjid Jami' An-Nur", milestone: "60%", kondisi: "Baik", photos: 5, score: 88 },
-  { id: "RPT-1040", date: "2 Hari lalu, 10:00", project: "Pesantren Tahfidz Al-Ikhlas", milestone: "20%", kondisi: "Perlu Perhatian", photos: 3, score: 72 },
-  { id: "RPT-1039", date: "5 Hari lalu, 08:45", project: "Masjid Jami' An-Nur", milestone: "40%", kondisi: "Baik", photos: 5, score: 97 },
-  { id: "RPT-1038", date: "1 Minggu lalu", project: "Pesantren Tahfidz Al-Ikhlas", milestone: "20%", kondisi: "Baik", photos: 2, score: 83 },
-];
+type ReportType = {
+  id: string;
+  date: string;
+  project: string;
+  milestone: string;
+  kondisi: string;
+  photos: number;
+  score: number;
+};
+
+const reports: ReportType[] = [];
 
 export default function RiwayatPage() {
   const [selectedReport, setSelectedReport] = useState<typeof reports[0] | null>(null);

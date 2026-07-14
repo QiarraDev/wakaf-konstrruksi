@@ -2,68 +2,23 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const VENDOR_DATA = [
-  {
-    id: "VND-001",
-    name: "PT. Maju Jaya Konstruksi",
-    type: "PT",
-    region: "Jawa Barat",
-    pic: "Budi Santoso",
-    phone: "081234567890",
-    address: "Jl. Sudirman No.45, Bandung, Jawa Barat",
-    kycScore: 85,
-    submittedAt: "06 Jul 2026",
-    docs: ["NIB_PT_Maju_Jaya.pdf", "SIUJK_2024.pdf", "NPWP.pdf", "KTP_Direktur.jpg"],
-    fieldStatus: "Menunggu Verifikasi Lapangan",
-    portofolio: ["Pembangunan Masjid Al-Ikhlas (2023)", "Renovasi Pesantren Darul Hikmah (2024)"],
-    rekening: "BSI – 7120034891",
-  },
-  {
-    id: "VND-002",
-    name: "CV. Bangun Bersama",
-    type: "CV",
-    region: "Jawa Tengah",
-    pic: "Ahmad Fauzi",
-    phone: "082345678901",
-    address: "Jl. Pemuda No.12, Semarang, Jawa Tengah",
-    kycScore: 60,
-    submittedAt: "07 Jul 2026",
-    docs: ["NIB_CV_Bangun.pdf", "KTP_Direktur.jpg"],
-    fieldStatus: "Menunggu Verifikasi Lapangan",
-    portofolio: ["Proyek Sumur Air Bersih Kab. Kendal (2023)"],
-    rekening: "BCA – 8912004567",
-  },
-  {
-    id: "VND-003",
-    name: "Kelompok Swakelola An-Nur",
-    type: "Swakelola",
-    region: "Jawa Timur",
-    pic: "Pak Hasyim",
-    phone: "083456789012",
-    address: "Desa Kebonsari RT02/RW04, Jombang, Jawa Timur",
-    kycScore: 92,
-    submittedAt: "05 Jul 2026",
-    docs: ["NIB_Swakelola.pdf", "NPWP.pdf", "KTP_Direktur.jpg"],
-    fieldStatus: "Terverifikasi Lapangan",
-    portofolio: ["Madrasah Ibtidaiyah Al-Falah (2022)", "Sumur Wakaf Desa Kebonsari (2024)"],
-    rekening: "Mandiri – 1440012837",
-  },
-  {
-    id: "VND-004",
-    name: "PT. Graha Nusa Bangun",
-    type: "PT",
-    region: "Banten",
-    pic: "Dika Prasetya",
-    phone: "084567890123",
-    address: "Jl. Raya Serang No.88, Tangerang, Banten",
-    kycScore: 72,
-    submittedAt: "08 Jul 2026",
-    docs: ["NIB_PT_Graha.pdf", "SIUJK.pdf", "NPWP.pdf"],
-    fieldStatus: "KYC Dikirim – Belum Diinspeksi",
-    portofolio: ["Gedung Kantor Koperasi Sejahtera (2023)"],
-    rekening: "BRI – 0291004532",
-  },
-];
+type VendorDataType = {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  pic: string;
+  phone: string;
+  address: string;
+  kycScore: number;
+  submittedAt: string;
+  docs: string[];
+  fieldStatus: string;
+  portofolio: string[];
+  rekening: string;
+};
+
+const VENDOR_DATA: VendorDataType[] = [];
 
 type VendorStatus = "approved" | "rejected" | null;
 
