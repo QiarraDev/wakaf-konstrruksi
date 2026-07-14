@@ -2,6 +2,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+type VendorMini = {
+  id: string;
+  name: string;
+  type: string;
+  region: string;
+  pic: string;
+  phone: string;
+  kycScore: number;
+};
+
 export type ProposalType = {
   id: string;
   name: string;
@@ -16,6 +26,10 @@ const INITIAL_PROPOSALS: ProposalType[] = [];
 
 export default function AdminKurasiPage() {
   const [proposals, setProposals] = useState(INITIAL_PROPOSALS);
+  const [registeredVendors, setRegisteredVendors] = useState<VendorMini[]>([]);
+  const [selectedVendorForBriefing, setSelectedVendorForBriefing] = useState<VendorMini | null>(null);
+  const [briefingNote, setBriefingNote] = useState("");
+  const [briefingSent, setBriefingSent] = useState<string[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem('simulated_proposal');
@@ -30,7 +44,45 @@ export default function AdminKurasiPage() {
         });
       } catch (e) {}
     }
+    // Baca daftar vendor yang sudah terdaftar
+    const savedVendors = localStorage.getItem('vendor_registrations');
+    if (savedVendors) {
+      try { setRegisteredVendors(JSON.parse(savedVendors)); } catch(e) {}
+    }
+    // Baca arahan yang sudah dikirim
+    const sentBriefings = localStorage.getItem('admin_briefings_sent');
+    if (sentBriefings) {
+      try { setBriefingSent(JSON.parse(sentBriefings)); } catch(e) {}
+    }
   }, []);
+
+  const handleSendBriefing = (project: typeof INITIAL_PROPOSALS[0], vendor: VendorMini) => {
+    const briefingData = {
+      id: `BRF-${Date.now()}`,
+      proposalId: project.id,
+      proposalName: project.name,
+      region: project.region,
+      category: project.cat,
+      estimatedBudget: project.dana,
+      pic: project.pic,
+      vendorId: vendor.id,
+      vendorName: vendor.name,
+      note: briefingNote || `Mohon perhatian untuk pengerjaan proyek ${project.cat} di ${project.region}. PIC Pengelola: ${project.pic}. Estimasi anggaran: ${project.dana}.`,
+      sentAt: new Date().toLocaleString('id-ID'),
+      status: 'Baru',
+    };
+    // Simpan ke localStorage untuk dibaca di dashboard Vendor
+    const existing = JSON.parse(localStorage.getItem('vendor_briefings') || '[]');
+    localStorage.setItem('vendor_briefings', JSON.stringify([briefingData, ...existing]));
+    // Tandai sudah dikirim
+    const newSent = [...briefingSent, `${project.id}_${vendor.id}`];
+    setBriefingSent(newSent);
+    localStorage.setItem('admin_briefings_sent', JSON.stringify(newSent));
+    setSelectedVendorForBriefing(null);
+    setBriefingNote("");
+    showToast(`✅ Arahan berhasil dikirim ke ${vendor.name}! Vendor akan menerima notifikasi di dashboard mereka.`);
+  };
+
   const [selectedProject, setSelectedProject] = useState<typeof INITIAL_PROPOSALS[0] | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -201,23 +253,91 @@ export default function AdminKurasiPage() {
 
                 {/* ===== AKSI BERDASARKAN STATUS ===== */}
                 {selectedProject.status === "Menunggu Kurasi" && (
-                  <div className="space-y-4 border-t border-gray-100 dark:border-gray-800 pt-5">
-                    <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">🚀 Tindakan Admin</h4>
-                    <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl">
-                      <p className="text-amber-800 dark:text-amber-400 text-sm font-medium">
-                        Proposal sudah Anda telaah. Tugaskan Validator Lapangan untuk melakukan survei fisik dan verifikasi dokumen di lokasi.
-                      </p>
-                    </div>
+                  <div className="space-y-5 border-t border-gray-100 dark:border-gray-800 pt-5">
+
+                    {/* ===== REKOMENDASI VENDOR WILAYAH ===== */}
                     <div>
-                      <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Pilih Validator Lapangan</label>
-                      <select className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white">
-                        <option>Ahmad Fauzi — Validator Area {selectedProject.region}</option>
-                        <option>Budi Setiawan — Validator Senior Nasional</option>
-                      </select>
+                      <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">🏢 Vendor Terdaftar di Wilayah {selectedProject.region}</h4>
+                      {registeredVendors.filter(v => v.region === selectedProject.region).length === 0 ? (
+                        <div className="bg-gray-50 dark:bg-gray-800 border border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-5 text-center">
+                          <div className="text-3xl mb-2">🔍</div>
+                          <p className="text-sm font-bold text-gray-500 dark:text-gray-400">Belum ada vendor terdaftar di wilayah {selectedProject.region}</p>
+                          <p className="text-xs text-gray-400 mt-1">Vendor dari wilayah lain bisa ditampilkan di bawah ini.</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {registeredVendors
+                            .filter(v => v.region === selectedProject.region)
+                            .map(vendor => {
+                              const alreadySent = briefingSent.includes(`${selectedProject.id}_${vendor.id}`);
+                              return (
+                                <div key={vendor.id} className={`rounded-xl border p-4 ${alreadySent ? 'border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800'}`}>
+                                  <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0">{vendor.name.charAt(0)}</div>
+                                      <div>
+                                        <p className="font-bold text-gray-900 dark:text-white text-sm">{vendor.name}</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">{vendor.type} · PIC: {vendor.pic} · 📞 {vendor.phone}</p>
+                                      </div>
+                                    </div>
+                                    {alreadySent ? (
+                                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 rounded-lg flex-shrink-0">✅ Arahan Terkirim</span>
+                                    ) : (
+                                      <button
+                                        onClick={() => setSelectedVendorForBriefing(vendor)}
+                                        className="text-xs font-bold px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors flex-shrink-0"
+                                      >
+                                        📨 Kirim Arahan
+                                      </button>
+                                    )}
+                                  </div>
+                                  {/* Briefing compose panel */}
+                                  {selectedVendorForBriefing?.id === vendor.id && (
+                                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+                                      <p className="text-xs font-bold text-gray-600 dark:text-gray-400">Tulis Arahan / Brief untuk {vendor.name}:</p>
+                                      <textarea
+                                        value={briefingNote}
+                                        onChange={e => setBriefingNote(e.target.value)}
+                                        placeholder={`Contoh: Mohon perhatian untuk pengerjaan proyek ${selectedProject.cat} di ${selectedProject.region}. Estimasi anggaran ${selectedProject.dana}. Harap segera berkoordinasi dengan PIC ${selectedProject.pic}.`}
+                                        className="w-full p-3 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200 resize-none h-28 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                      />
+                                      <div className="flex gap-2 justify-end">
+                                        <button onClick={() => setSelectedVendorForBriefing(null)} className="text-sm font-bold text-gray-500 px-3 py-1.5">Batal</button>
+                                        <button
+                                          onClick={() => handleSendBriefing(selectedProject, vendor)}
+                                          className="text-sm font-bold px-4 py-1.5 bg-teal-600 hover:bg-teal-700 text-white rounded-lg transition-colors"
+                                        >
+                                          🚀 Kirim Arahan ke Vendor
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
                     </div>
-                    <button onClick={() => handleDispatch(selectedProject)} className="w-full btn-primary py-3 flex items-center justify-center gap-2">
-                      🚀 Tugaskan Validator (Dispatch)
-                    </button>
+
+                    {/* ===== DISPATCH VALIDATOR ===== */}
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">🚀 Tugaskan Validator Lapangan</h4>
+                      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 rounded-xl">
+                        <p className="text-amber-800 dark:text-amber-400 text-sm font-medium">
+                          Tugaskan Validator Lapangan untuk melakukan survei fisik dan verifikasi dokumen di lokasi.
+                        </p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1">Pilih Validator Lapangan</label>
+                        <select className="w-full p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm outline-none text-gray-900 dark:text-white">
+                          <option>Ahmad Fauzi — Validator Area {selectedProject.region}</option>
+                          <option>Budi Setiawan — Validator Senior Nasional</option>
+                        </select>
+                      </div>
+                      <button onClick={() => handleDispatch(selectedProject)} className="w-full btn-primary py-3 flex items-center justify-center gap-2">
+                        🚀 Tugaskan Validator (Dispatch)
+                      </button>
+                    </div>
                   </div>
                 )}
 

@@ -1,6 +1,21 @@
 "use client";
-import { motion } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+
+type BriefingType = {
+  id: string;
+  proposalId: string;
+  proposalName: string;
+  region: string;
+  category: string;
+  estimatedBudget: string;
+  pic: string;
+  vendorId: string;
+  vendorName: string;
+  note: string;
+  sentAt: string;
+  status: string;
+};
 
 const milestones = [
   {
@@ -26,10 +41,20 @@ export default function VendorDashboard() {
   const [kycModal, setKycModal] = useState(false);
   const [kycSubmitted, setKycSubmitted] = useState(false);
   const [uploadedDocs, setUploadedDocs] = useState<{[key: string]: boolean}>({});
+  const [briefings, setBriefings] = useState<BriefingType[]>([]);
+  const [selectedBriefing, setSelectedBriefing] = useState<BriefingType | null>(null);
 
   const [modal, setModal] = useState<{ projectId: number; milestone: number } | null>(null);
   const [submitted, setSubmitted] = useState<number[]>([]);
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    // Baca arahan dari Admin
+    const saved = localStorage.getItem('vendor_briefings');
+    if (saved) {
+      try { setBriefings(JSON.parse(saved)); } catch(e) {}
+    }
+  }, []);
 
   const handleSubmit = () => {
     if (modal) {
@@ -51,6 +76,58 @@ export default function VendorDashboard() {
           {isVerified && <span className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-emerald-500"></span>Vendor Terverifikasi</span>}
           {kycSubmitted && !isVerified && <span className="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-400 text-xs font-bold px-3 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>Menunggu Review Admin</span>}
         </motion.div>
+
+        {/* ===== INBOX ARAHAN DARI ADMIN ===== */}
+        {briefings.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="rounded-2xl border-2 border-teal-400 dark:border-teal-700 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 overflow-hidden shadow-lg shadow-teal-200/40 dark:shadow-teal-900/30"
+          >
+            <div className="px-5 py-4 flex items-center justify-between border-b border-teal-200 dark:border-teal-700 bg-teal-600 dark:bg-teal-800">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <span className="text-2xl">📨</span>
+                  {briefings.filter(b => b.status === 'Baru').length > 0 && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center">{briefings.filter(b => b.status === 'Baru').length}</span>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-black text-white text-sm">Arahan dari Admin</h3>
+                  <p className="text-teal-100 text-xs">{briefings.length} arahan masuk — Anda telah ditunjuk untuk proyek spesifik</p>
+                </div>
+              </div>
+            </div>
+            <div className="divide-y divide-teal-100 dark:divide-teal-800">
+              {briefings.map((b, i) => (
+                <motion.div
+                  key={b.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.07 }}
+                  className="p-4 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors cursor-pointer"
+                  onClick={() => setSelectedBriefing(b)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        {b.status === 'Baru' && <span className="bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase">BARU</span>}
+                        <p className="font-black text-gray-900 dark:text-white text-sm truncate">{b.proposalName}</p>
+                      </div>
+                      <p className="text-xs text-teal-700 dark:text-teal-400 font-medium">📍 {b.region} · {b.category} · RAB {b.estimatedBudget}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">{b.note}</p>
+                    </div>
+                    <div className="flex-shrink-0 text-right">
+                      <p className="text-[10px] text-gray-400">{b.sentAt}</p>
+                      <button className="mt-1 text-xs font-bold text-teal-600 dark:text-teal-400 hover:underline">Baca Detail →</button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
 
         {!isVerified && !kycSubmitted && (
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 flex flex-col md:flex-row gap-6 items-center shadow-sm">
@@ -309,6 +386,75 @@ export default function VendorDashboard() {
           </motion.div>
         </div>
       )}
+
+      {/* ===== MODAL DETAIL ARAHAN ADMIN ===== */}
+      <AnimatePresence>
+        {selectedBriefing && (
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setSelectedBriefing(null)}>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-lg border border-gray-100 dark:border-gray-800 overflow-hidden"
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="bg-gradient-to-r from-teal-600 to-cyan-600 px-6 py-5 flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-2xl">📨</span>
+                    <span className="text-white/70 text-xs font-bold uppercase tracking-wider">Arahan dari Admin</span>
+                  </div>
+                  <h2 className="font-black text-white text-lg leading-tight">{selectedBriefing.proposalName}</h2>
+                </div>
+                <button onClick={() => setSelectedBriefing(null)} className="text-white/60 hover:text-white text-2xl leading-none">&times;</button>
+              </div>
+
+              {/* Body */}
+              <div className="p-6 space-y-4">
+                {/* Info Proyek */}
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  {[
+                    { label: 'Wilayah', value: selectedBriefing.region, icon: '📍' },
+                    { label: 'Kategori', value: selectedBriefing.category, icon: '🏗️' },
+                    { label: 'Estimasi RAB', value: selectedBriefing.estimatedBudget, icon: '💰' },
+                    { label: 'PIC Pengelola', value: selectedBriefing.pic, icon: '👤' },
+                  ].map(item => (
+                    <div key={item.label} className="bg-gray-50 dark:bg-gray-800 rounded-xl p-3 border border-gray-100 dark:border-gray-700">
+                      <p className="text-xs text-gray-400 mb-0.5">{item.icon} {item.label}</p>
+                      <p className="font-bold text-gray-900 dark:text-white">{item.value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pesan Arahan */}
+                <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-4">
+                  <p className="text-xs font-black text-teal-600 dark:text-teal-400 uppercase tracking-wider mb-2">📝 Pesan Arahan Admin</p>
+                  <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{selectedBriefing.note}</p>
+                </div>
+
+                {/* Info pengiriman */}
+                <p className="text-xs text-gray-400 text-center">Dikirim oleh Admin pada {selectedBriefing.sentAt}</p>
+
+                <div className="flex gap-3 pt-1">
+                  <button
+                    onClick={() => setSelectedBriefing(null)}
+                    className="flex-1 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
+                  >
+                    Tutup
+                  </button>
+                  <button
+                    onClick={() => { setSelectedBriefing(null); setKycModal(true); }}
+                    className="flex-1 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold transition-colors text-sm shadow-lg shadow-teal-600/20"
+                  >
+                    ✅ Konfirmasi & Lengkapi KYC
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
