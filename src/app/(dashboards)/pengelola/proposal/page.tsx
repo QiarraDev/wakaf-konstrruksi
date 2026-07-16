@@ -86,7 +86,7 @@ function FloorPlanSVG({ type }: { type: BuildingType }) {
 export default function ProposalWizardPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   // --- STATE: STEP 1 (INFO) ---
   const [namaProyek, setNamaProyek] = useState("");
@@ -102,7 +102,23 @@ export default function ProposalWizardPage() {
   const kotaList = prov && LOCATION_DATA[prov as keyof typeof LOCATION_DATA] ? Object.keys(LOCATION_DATA[prov as keyof typeof LOCATION_DATA]) : [];
   const kecList = prov && kota && LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as any] ? Object.keys(LOCATION_DATA[prov as keyof typeof LOCATION_DATA][kota as any]) : [];
 
-  // --- STATE: STEP 2 (DESAIN) ---
+  // --- STATE: STEP 2 (LEGALITAS) ---
+  type DocStatus = { uploaded: boolean; fileName: string | null };
+  const [legalDocs, setLegalDocs] = useState<Record<string, DocStatus>>({
+    aiw: { uploaded: false, fileName: null },
+    sertifikat: { uploaded: false, fileName: null },
+    sk_nazhir: { uploaded: false, fileName: null },
+    ktp_nazhir: { uploaded: false, fileName: null },
+    rekomendasi_kua: { uploaded: false, fileName: null },
+    foto_dokumen: { uploaded: false, fileName: null },
+  });
+  const handleDocUpload = (key: string, file: File) => {
+    setLegalDocs(prev => ({ ...prev, [key]: { uploaded: true, fileName: file.name } }));
+  };
+  const wajibDocs = ['aiw', 'sertifikat', 'sk_nazhir', 'ktp_nazhir'];
+  const isLegalComplete = wajibDocs.every(k => legalDocs[k].uploaded);
+
+  // --- STATE: STEP 3 (DESAIN) ---
   const [panjang, setPanjang] = useState<number | "">("");
   const [lebar, setLebar] = useState<number | "">("");
   const [buildingType, setBuildingType] = useState<BuildingType>("masjid");
@@ -155,14 +171,24 @@ export default function ProposalWizardPage() {
       <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
           <h1 className="text-2xl font-black text-gray-900">Pengajuan Proposal Wakaf</h1>
-          <p className="text-gray-500 mt-1">Selesaikan 4 langkah untuk mengajukan proposal pembangunan secara lengkap.</p>
+          <p className="text-gray-500 mt-1">Selesaikan 5 langkah untuk mengajukan proposal pembangunan secara lengkap.</p>
         </div>
-        <div className="flex gap-2">
-          {[1,2,3,4].map(step => (
-            <div key={step} className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm ${currentStep === step ? 'bg-primary text-white shadow-lg' : currentStep > step ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
-              {currentStep > step ? '✓' : step}
-            </div>
-          ))}
+        <div className="flex items-center gap-1.5">
+          {['Info', 'Legalitas', 'Desain', 'RAB & Foto', 'Review'].map((label, idx) => {
+            const step = idx + 1;
+            return (
+              <div key={step} className="flex items-center gap-1">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${
+                  currentStep === step ? 'bg-primary text-white shadow-lg shadow-primary/30' 
+                  : currentStep > step ? 'bg-emerald-100 text-emerald-700' 
+                  : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {currentStep > step ? '✓' : step}
+                </div>
+                {idx < 4 && <div className={`w-5 h-0.5 ${currentStep > step ? 'bg-emerald-400' : 'bg-gray-200'}`} />}
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -230,10 +256,167 @@ export default function ProposalWizardPage() {
           </motion.div>
         )}
 
-        {/* ================= STEP 2: DESAIN ================= */}
+        {/* ================= STEP 2: LEGALITAS ================= */}
         {currentStep === 2 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2 className="text-xl font-bold mb-6 border-b pb-4">2. Arsitektur &amp; Desain</h2>
+            <div className="flex items-center justify-between mb-6 border-b pb-4">
+              <div>
+                <h2 className="text-xl font-bold">2. Legalitas &amp; Dokumen Hukum</h2>
+                <p className="text-sm text-gray-500 mt-1">Upload dokumen resmi untuk memvalidasi status tanah dan kelayakan hukum proyek wakaf.</p>
+              </div>
+              {isLegalComplete && (
+                <span className="bg-emerald-100 text-emerald-700 text-xs font-black px-3 py-1.5 rounded-lg border border-emerald-200 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>Dokumen Wajib Lengkap
+                </span>
+              )}
+            </div>
+
+            {/* Info Banner */}
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex gap-3">
+              <span className="text-2xl flex-shrink-0">⚠️</span>
+              <div className="text-sm">
+                <p className="font-bold text-amber-900 mb-1">Dokumen Legal Wajib Disiapkan</p>
+                <p className="text-amber-800">Proposal tanpa dokumen hukum yang sah akan otomatis ditolak saat proses kurasi. Pastikan semua dokumen asli sudah di-scan atau difoto dengan jelas.</p>
+              </div>
+            </div>
+
+            {/* Document Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  key: 'aiw',
+                  label: 'Akta Ikrar Wakaf (AIW)',
+                  desc: 'Dokumen resmi pernyataan ikrar wakaf dari Wakif kepada Nazhir, disaksikan dan dicatat oleh KUA.',
+                  required: true,
+                  icon: '📜',
+                  accept: '.pdf,.jpg,.jpeg,.png',
+                },
+                {
+                  key: 'sertifikat',
+                  label: 'Sertifikat Tanah Wakaf',
+                  desc: 'SHW (Sertifikat Hak Wakaf) dari BPN atau sertifikat tanah yang sudah beralih status menjadi wakaf.',
+                  required: true,
+                  icon: '🏛️',
+                  accept: '.pdf,.jpg,.jpeg,.png',
+                },
+                {
+                  key: 'sk_nazhir',
+                  label: 'SK Nazhir / Pengelola',
+                  desc: 'Surat Keputusan penetapan Nazhir dari KUA atau Badan Wakaf Indonesia (BWI) yang sah.',
+                  required: true,
+                  icon: '📋',
+                  accept: '.pdf,.jpg,.jpeg,.png',
+                },
+                {
+                  key: 'ktp_nazhir',
+                  label: 'KTP Nazhir / PIC',
+                  desc: 'KTP asli penanggung jawab (Nazhir) yang terdaftar dan akan menjadi PIC proyek ini.',
+                  required: true,
+                  icon: '🪪',
+                  accept: '.jpg,.jpeg,.png',
+                },
+                {
+                  key: 'rekomendasi_kua',
+                  label: 'Surat Rekomendasi KUA',
+                  desc: 'Surat persetujuan atau rekomendasi dari Kantor Urusan Agama setempat (opsional tapi sangat disarankan).',
+                  required: false,
+                  icon: '✉️',
+                  accept: '.pdf,.jpg,.jpeg,.png',
+                },
+                {
+                  key: 'foto_dokumen',
+                  label: 'Foto Fisik Dokumen Lainnya',
+                  desc: 'Foto surat-surat pendukung lainnya: Surat Persetujuan Ahli Waris, Surat Kuasa, dll.',
+                  required: false,
+                  icon: '📸',
+                  accept: '.jpg,.jpeg,.png',
+                },
+              ].map(doc => {
+                const status = legalDocs[doc.key];
+                return (
+                  <label
+                    key={doc.key}
+                    className={`relative flex flex-col p-5 rounded-xl border-2 cursor-pointer transition-all ${
+                      status.uploaded
+                        ? 'border-emerald-400 bg-emerald-50'
+                        : doc.required
+                        ? 'border-dashed border-red-300 bg-red-50/30 hover:border-red-400 hover:bg-red-50'
+                        : 'border-dashed border-gray-300 bg-gray-50 hover:border-primary hover:bg-emerald-50/30'
+                    }`}
+                  >
+                    <input
+                      type="file"
+                      accept={doc.accept}
+                      className="hidden"
+                      onChange={e => e.target.files?.[0] && handleDocUpload(doc.key, e.target.files[0])}
+                    />
+                    {/* Required badge */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{doc.icon}</span>
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${
+                          doc.required 
+                            ? 'bg-red-100 text-red-600 border border-red-200' 
+                            : 'bg-gray-100 text-gray-500 border border-gray-200'
+                        }`}>
+                          {doc.required ? 'Wajib' : 'Opsional'}
+                        </span>
+                      </div>
+                      {status.uploaded && (
+                        <span className="text-emerald-600 font-black text-lg">✅</span>
+                      )}
+                    </div>
+                    <p className="font-bold text-gray-900 text-sm mb-1">{doc.label}</p>
+                    <p className="text-xs text-gray-500 leading-relaxed mb-3">{doc.desc}</p>
+                    {status.uploaded ? (
+                      <div className="bg-emerald-100 border border-emerald-200 rounded-lg px-3 py-2 flex items-center gap-2">
+                        <span className="text-emerald-600">📄</span>
+                        <span className="text-xs font-bold text-emerald-700 truncate">{status.fileName}</span>
+                      </div>
+                    ) : (
+                      <div className="bg-white border border-gray-200 rounded-lg px-3 py-2 text-center">
+                        <span className="text-xs font-bold text-gray-500">⬆️ Klik untuk upload</span>
+                      </div>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+
+            {/* Checklist Summary */}
+            <div className="mt-6 bg-gray-50 rounded-xl border border-gray-200 p-4">
+              <p className="text-xs font-black text-gray-500 uppercase tracking-wider mb-3">Status Kelengkapan Dokumen</p>
+              <div className="grid grid-cols-2 gap-2">
+                {Object.entries(legalDocs).map(([key, status]) => {
+                  const labels: Record<string, string> = {
+                    aiw: 'Akta Ikrar Wakaf',
+                    sertifikat: 'Sertifikat Tanah Wakaf',
+                    sk_nazhir: 'SK Nazhir',
+                    ktp_nazhir: 'KTP Nazhir',
+                    rekomendasi_kua: 'Rekomendasi KUA',
+                    foto_dokumen: 'Foto Dokumen Lain',
+                  };
+                  return (
+                    <div key={key} className={`flex items-center gap-2 text-xs font-medium px-3 py-1.5 rounded-lg ${
+                      status.uploaded ? 'text-emerald-700 bg-emerald-100' : 'text-gray-400 bg-gray-100'
+                    }`}>
+                      <span>{status.uploaded ? '✅' : '⬜'}</span>
+                      <span>{labels[key]}</span>
+                    </div>
+                  );
+                })}
+              </div>
+              {!isLegalComplete && (
+                <p className="text-xs text-red-500 font-medium mt-3">⚠️ Masih ada {wajibDocs.filter(k => !legalDocs[k].uploaded).length} dokumen wajib yang belum diupload.</p>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ================= STEP 3: DESAIN ================= */}
+        {currentStep === 3 && (
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+            <h2 className="text-xl font-bold mb-6 border-b pb-4">3. Arsitektur &amp; Desain</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div>
                 <label className="block text-sm font-semibold mb-2">Panjang Tanah (m)</label>
@@ -280,10 +463,10 @@ export default function ProposalWizardPage() {
           </motion.div>
         )}
 
-        {/* ================= STEP 3: RAB & FOTO ================= */}
-        {currentStep === 3 && (
+        {/* ================= STEP 4: RAB & FOTO ================= */}
+        {currentStep === 4 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
-            <h2 className="text-xl font-bold mb-6 border-b pb-4">3. Rencana Anggaran Biaya (RAB)</h2>
+            <h2 className="text-xl font-bold mb-6 border-b pb-4">4. Rencana Anggaran Biaya (RAB)</h2>
             
             <div 
               className="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer border-gray-300 hover:border-primary hover:bg-emerald-50 mb-6"
@@ -353,8 +536,8 @@ export default function ProposalWizardPage() {
           </motion.div>
         )}
 
-        {/* ================= STEP 4: PREVIEW ================= */}
-        {currentStep === 4 && (
+        {/* ================= STEP 5: PREVIEW ================= */}
+        {currentStep === 5 && (
           <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
             <div className="bg-emerald-50 rounded-xl p-8 text-center mb-8 border border-emerald-200">
               <h2 className="text-2xl font-black text-emerald-900 mb-2">Pratinjau Proposal Dokumen</h2>
@@ -374,10 +557,23 @@ export default function ProposalWizardPage() {
               </div>
               <div>
                 <h3 className="font-bold text-gray-400 uppercase text-xs tracking-wider mb-3">Ringkasan Biaya</h3>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-sm mb-6">
                   <div className="flex justify-between border-b pb-2"><span>Subtotal Material</span><span className="font-bold">{formatRp(subtotalMaterial)}</span></div>
                   <div className="flex justify-between border-b pb-2"><span>Subtotal Jasa</span><span className="font-bold">{formatRp(subtotalJasa)}</span></div>
                   <div className="flex justify-between pt-2"><span>Total RAB</span><span className="font-bold text-primary text-lg">{formatRp(totalRAB)}</span></div>
+                </div>
+
+                <h3 className="font-bold text-gray-400 uppercase text-xs tracking-wider mb-3">Status Dokumen Legal</h3>
+                <div className="space-y-2 text-sm bg-gray-50 p-4 rounded-xl border border-gray-100">
+                  {Object.entries(legalDocs).filter(([k, s]) => s.uploaded).length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {Object.entries(legalDocs).filter(([k, s]) => s.uploaded).map(([k, s]) => (
+                        <span key={k} className="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-xs font-bold border border-emerald-200">✅ {s.fileName}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">Belum ada dokumen yang diupload</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -418,7 +614,9 @@ export default function ProposalWizardPage() {
                   dana: formatRp(totalRAB),
                   status: "Menunggu Kurasi",
                   region: prov || "Jawa Barat",
-                  pic: picName || "Budi"
+                  fullAddress: `${jalan || 'Jl. Sudirman No. 12'}, ${kec || 'Coblong'}, ${kota || 'Bandung'}`,
+                  pic: picName || "Budi",
+                  phone: picPhone || "08123456789"
                 };
                 localStorage.setItem("simulated_proposal", JSON.stringify(newProposal));
                 alert("Proposal Lengkap Berhasil Diajukan!"); 
@@ -436,8 +634,8 @@ export default function ProposalWizardPage() {
         <button onClick={prevStep} disabled={currentStep === 1} className="px-6 py-3 border border-gray-300 rounded-xl font-bold text-gray-600 disabled:opacity-30">
           &larr; Kembali
         </button>
-        {currentStep < 4 ? (
-          <button onClick={nextStep} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-md hover:bg-black transition-colors">
+        {currentStep < 5 ? (
+          <button onClick={nextStep} disabled={currentStep === 2 && !isLegalComplete} className="px-6 py-3 bg-gray-900 text-white rounded-xl font-bold shadow-md hover:bg-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             Langkah Selanjutnya &rarr;
           </button>
         ) : <div/>}

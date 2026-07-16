@@ -43,6 +43,9 @@ export default function VendorDashboard() {
   const [uploadedDocs, setUploadedDocs] = useState<{[key: string]: boolean}>({});
   const [briefings, setBriefings] = useState<BriefingType[]>([]);
   const [selectedBriefing, setSelectedBriefing] = useState<BriefingType | null>(null);
+  
+  // Proposal Upload State
+  const [proposalUploads, setProposalUploads] = useState<{rab: boolean, desain: boolean}>({rab: false, desain: false});
 
   const [modal, setModal] = useState<{ projectId: number; milestone: number } | null>(null);
   const [submitted, setSubmitted] = useState<number[]>([]);
@@ -433,10 +436,24 @@ export default function VendorDashboard() {
                   <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">{selectedBriefing.note}</p>
                 </div>
 
-                {/* Info pengiriman */}
-                <p className="text-xs text-gray-400 text-center">Dikirim oleh Admin pada {selectedBriefing.sentAt}</p>
+                {/* Upload Dokumen Balasan */}
+                <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 mt-2">
+                  <p className="text-sm font-bold text-gray-900 dark:text-white mb-3">Upload Dokumen Laporan / Proposal</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <label className={`cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-colors ${proposalUploads.rab ? 'border-teal-400 bg-teal-50 dark:bg-teal-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-teal-400'}`}>
+                      <input type="file" className="hidden" accept=".pdf,.xls,.xlsx" onChange={() => setProposalUploads({...proposalUploads, rab: true})} />
+                      <span className="text-2xl mb-1">{proposalUploads.rab ? '✅' : '📄'}</span>
+                      <span className="text-xs font-bold text-center">{proposalUploads.rab ? 'RAB Diupload' : 'Upload RAB'}</span>
+                    </label>
+                    <label className={`cursor-pointer flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl transition-colors ${proposalUploads.desain ? 'border-teal-400 bg-teal-50 dark:bg-teal-900/20' : 'border-gray-300 dark:border-gray-600 hover:border-teal-400'}`}>
+                      <input type="file" className="hidden" accept=".pdf,.jpg,.png" onChange={() => setProposalUploads({...proposalUploads, desain: true})} />
+                      <span className="text-2xl mb-1">{proposalUploads.desain ? '✅' : '📐'}</span>
+                      <span className="text-xs font-bold text-center">{proposalUploads.desain ? 'Desain Diupload' : 'Upload Desain / Blueprint'}</span>
+                    </label>
+                  </div>
+                </div>
 
-                <div className="flex gap-3 pt-1">
+                <div className="flex gap-3 pt-2">
                   <button
                     onClick={() => setSelectedBriefing(null)}
                     className="flex-1 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm"
@@ -444,10 +461,23 @@ export default function VendorDashboard() {
                     Tutup
                   </button>
                   <button
-                    onClick={() => { setSelectedBriefing(null); setKycModal(true); }}
-                    className="flex-1 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold transition-colors text-sm shadow-lg shadow-teal-600/20"
+                    onClick={() => { 
+                      if (proposalUploads.rab || proposalUploads.desain) {
+                        alert("Dokumen berhasil dikirim ke Admin!");
+                        setSelectedBriefing(null);
+                        setProposalUploads({rab: false, desain: false});
+                      } else {
+                        setSelectedBriefing(null);
+                        setKycModal(true); 
+                      }
+                    }}
+                    className={`flex-1 py-3 rounded-xl font-bold transition-colors text-sm shadow-lg ${
+                      (proposalUploads.rab || proposalUploads.desain) 
+                        ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20" 
+                        : "bg-teal-600 hover:bg-teal-700 text-white shadow-teal-600/20"
+                    }`}
                   >
-                    ✅ Konfirmasi & Lengkapi KYC
+                    {(proposalUploads.rab || proposalUploads.desain) ? "Kirim Laporan & Dokumen" : "Konfirmasi & Lengkapi KYC"}
                   </button>
                 </div>
               </div>

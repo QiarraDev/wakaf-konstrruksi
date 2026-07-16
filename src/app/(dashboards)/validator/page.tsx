@@ -16,7 +16,20 @@ type VendorType = {
   kycScore: number;
 };
 
-const VENDOR_LIST: VendorType[] = [];
+const VENDOR_LIST: VendorType[] = [
+  {
+    id: "VND-102",
+    name: "PT Griya Konstruksi Indonesia",
+    type: "Kontraktor & Desain",
+    region: "Jawa Barat",
+    status: "Menunggu Validasi",
+    pic: "Bapak Herman",
+    phone: "0812-3344-5566",
+    address: "Jl. Merdeka No. 45, Bandung",
+    docs: ["NIB", "SIUJK Kelas M", "KTP Direktur", "NPWP Perusahaan"],
+    kycScore: 85
+  }
+];
 export default function ValidatorDashboard() {
   const [vendors, setVendors] = useState<typeof VENDOR_LIST>(VENDOR_LIST);
   const [selectedProject, setSelectedProject] = useState("Masjid Jami' An-Nur");
@@ -32,7 +45,10 @@ export default function ValidatorDashboard() {
   const [opiniText, setOpiniText] = useState("Lokasi tanah sudah bersih dan siap bangun. Masyarakat sekitar sangat mendukung. Dokumen AIW asli sudah saya cek dan fotokopi diamankan.");
   const [dispatchedProposal, setDispatchedProposal] = useState<any>(null);
   const surveyPhotoRef = useRef<HTMLInputElement>(null);
+  const surveyDocsRef = useRef<HTMLInputElement>(null);
   const [surveyPhotos, setSurveyPhotos] = useState<{name: string; url: string}[]>([]);
+  const [surveyDocsPhotos, setSurveyDocsPhotos] = useState<{name: string; url: string}[]>([]);
+  const [legalDocsVerified, setLegalDocsVerified] = useState<{[key: string]: boolean}>({});
 
   // --- Selfie / Absensi Wajah ---
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -541,9 +557,11 @@ export default function ValidatorDashboard() {
                 </div>
                 
                 <div className="bg-gray-50 dark:bg-gray-800/50 p-4 rounded-xl border border-gray-200 dark:border-gray-700 text-sm space-y-2 mb-4">
+                  <p><strong>📍 Alamat Lengkap:</strong> {dispatchedProposal?.fullAddress || 'Jl. Sudirman No. 12, Coblong, Bandung'}</p>
+                  <p><strong>📞 Kontak Pengelola:</strong> {dispatchedProposal?.pic || 'Budi Santoso'} ({dispatchedProposal?.phone || '08123456789'})</p>
                   <p><strong>Kategori:</strong> {dispatchedProposal?.cat || 'Masjid / Mushola'}</p>
                   <p><strong>Estimasi Dana RAB:</strong> {dispatchedProposal?.dana || 'Rp 1.200.000.000'}</p>
-                  <p><strong>Catatan Admin:</strong> "Pastikan lahan sudah diwakafkan (cek AIW) dan tidak dalam sengketa."</p>
+                  <p><strong>Catatan Admin:</strong> "Pastikan lahan sudah diwakafkan (cek AIW) dan tidak dalam sengketa. Hubungi no pengelola saat akan survei lapangan."</p>
                 </div>
 
                 {surveyStatus === "Pending" ? (
@@ -677,8 +695,56 @@ export default function ValidatorDashboard() {
                   )}
                 </div>
 
+                {/* Verifikasi Dokumen Legalitas */}
+                <div className="bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5">
+                  <label className="block text-sm font-bold text-gray-900 dark:text-white mb-1">Verifikasi Fisik Dokumen Legalitas</label>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Pastikan Anda melihat langsung dokumen ASLI yang ditunjukkan oleh Pengelola/Nazhir.</p>
+                  
+                  <div className="space-y-3 mb-5">
+                    {[
+                      { id: 'aiw', label: 'Akta Ikrar Wakaf (AIW) Asli' },
+                      { id: 'shw', label: 'Sertifikat Tanah Wakaf (SHW) Asli' },
+                      { id: 'sk', label: 'SK Nazhir yang masih berlaku' },
+                      { id: 'ktp', label: 'KTP Asli PIC / Nazhir' }
+                    ].map(doc => (
+                      <label key={doc.id} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl cursor-pointer hover:border-teal-400 transition-colors">
+                        <input 
+                          type="checkbox" 
+                          className="w-5 h-5 accent-teal-600 rounded" 
+                          checked={legalDocsVerified[doc.id] || false}
+                          onChange={(e) => setLegalDocsVerified({...legalDocsVerified, [doc.id]: e.target.checked})}
+                        />
+                        <span className="text-sm font-bold text-gray-700 dark:text-gray-300">📄 {doc.label}</span>
+                      </label>
+                    ))}
+                  </div>
+
+                  <div
+                    onClick={() => surveyDocsRef.current?.click()}
+                    className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-4 text-center cursor-pointer hover:border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-900/10 transition-colors"
+                  >
+                    <div className="text-2xl mb-1">📸</div>
+                    <p className="text-sm font-bold text-gray-600 dark:text-gray-400">Upload Foto Dokumen / BAST</p>
+                    <input ref={surveyDocsRef} type="file" accept="image/*,.pdf" multiple className="hidden" onChange={e => {
+                      if (e.target.files?.length) {
+                        const files = Array.from(e.target.files).map(f => ({ name: f.name, url: URL.createObjectURL(f) }));
+                        setSurveyDocsPhotos(prev => [...prev, ...files]);
+                      }
+                    }} />
+                  </div>
+                  {surveyDocsPhotos.length > 0 && (
+                    <div className="flex gap-2 flex-wrap mt-3">
+                      {surveyDocsPhotos.map((p, i) => (
+                        <div key={i} className="flex items-center gap-2 bg-white dark:bg-gray-900 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <span className="text-sm truncate max-w-[120px]">{p.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Daftar Periksa Lapangan</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">Daftar Periksa Lapangan (Fisik Lahan)</label>
                   <div className="space-y-2">
                     {[
                       "Tanah kosong sesuai dengan ukuran di dokumen",
